@@ -7,7 +7,7 @@ import com.j256.ormlite.table.DatabaseTable;
  * Represents a student in a SQLite database
  *
  * @author Daniel Sage
- * @version 0.1
+ * @version 0.2
  */
 @DatabaseTable(tableName = "students")
 public final class Student {
@@ -16,7 +16,9 @@ public final class Student {
     @DatabaseField private String firstName;
     @DatabaseField private String lastName;
     @DatabaseField private String studentId;
-    @DatabaseField(foreign = true, foreignAutoRefresh = true) private Ebook ebook;
+    @DatabaseField private Boolean hasEbook;
+    @DatabaseField private String ebookCode;
+    @DatabaseField private String ebookName;
 
     /**
      * Student constructor for ORMLite
@@ -67,15 +69,6 @@ public final class Student {
     }
 
     /**
-     * Student's ebook (Can be null)
-     *
-     * @return Student's ebook
-     */
-    public Ebook getEbook() {
-        return ebook;
-    }
-
-    /**
      * Set student first name
      *
      * @param firstName First name
@@ -103,16 +96,6 @@ public final class Student {
     }
 
     /**
-     * Set student ebook
-     *
-     * @param ebook Ebook object
-     * @see Ebook
-     */
-    public void setEbook(Ebook ebook) {
-        this.ebook = ebook;
-    }
-
-    /**
      * Set student's database ID
      *
      * @param id Database ID
@@ -120,6 +103,31 @@ public final class Student {
     protected void setId(int id) {
         this.id = id;
     }
+
+    public Boolean hasEbook() {
+        return hasEbook;
+    }
+
+    public void setHasEbook(Boolean hasEbook) {
+        this.hasEbook = hasEbook;
+    }
+
+    public String getEbookCode() {
+        return ebookCode;
+    }
+
+    public String getEbookName() {
+        return ebookName;
+    }
+
+    public void setEbookCode(String ebookCode) {
+        this.ebookCode = ebookCode;
+    }
+
+    public void setEbookName(String ebookName) {
+        this.ebookName = ebookName;
+    }
+
 
     /**
      * Creates a memento savepoint for this student
@@ -143,25 +151,22 @@ public final class Student {
         firstName = memento.getFirstName();
         lastName = memento.getLastName();
         studentId = memento.getStudentId();
-        ebook.setEbookName(memento.getEbookName());
-        ebook.setEbookCode(memento.getEbookCode());
+        ebookCode = memento.getEbookCode();
+        ebookName = memento.getEbookName();
     }
-
 
     /**
      * Memento (<a href="https://www.oodesign.com/memento-pattern.html">oodesign.com/memento-pattern</a>)
-     * <p>
-     * Stores the state of a Student object
+     * that Stores the state of a {@code Student} object
      *
      * @author Daniel Sage
-     * @version 0.1
+     * @version 0.2
      */
     public static final class Memento {
         private final Student originalStudent;
         private final String firstName;
         private final String lastName;
         private final String studentId;
-        private final Ebook  originalEbook;
         private final String ebookName;
         private final String ebookCode;
         private final int databaseId;
@@ -171,16 +176,9 @@ public final class Student {
             this.firstName = originalStudent.getFirstName();
             this.lastName = originalStudent.getLastName();
             this.studentId = originalStudent.getStudentId();
-            this.originalEbook = originalStudent.getEbook();
             this.databaseId = originalStudent.getId();
-
-            if (this.originalEbook != null) {
-                this.ebookName = this.originalEbook.getEbookName();
-                this.ebookCode = this.originalEbook.getEbookCode();
-            } else {
-                this.ebookName = null;
-                this.ebookCode = null;
-            }
+            this.ebookName = originalStudent.getEbookName();
+            this.ebookCode = originalStudent.getEbookCode();
         }
 
         /**
@@ -212,13 +210,6 @@ public final class Student {
 
         String getStudentId() {
             return studentId;
-        }
-
-        /**
-         * @return Original Ebook of the original student
-         */
-        Ebook getOriginalEbook() {
-            return originalEbook;
         }
 
         String getEbookName() {

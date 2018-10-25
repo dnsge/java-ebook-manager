@@ -1,20 +1,15 @@
 package org.dnsge.fbla.ebkmg;
 
-import com.j256.ormlite.dao.Dao;
-import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.misc.TransactionManager;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-
 import javafx.scene.input.MouseEvent;
-import org.dnsge.fbla.ebkmg.models.Ebook;
 import org.dnsge.fbla.ebkmg.models.Student;
 
 import java.io.File;
@@ -29,7 +24,7 @@ import java.util.concurrent.Callable;
  * Controller for the main JavaFX view
  *
  * @author Daniel Sage
- * @version 0.1
+ * @version 0.2
  */
 public class MainPageController {
     // Menu bar stuff
@@ -75,17 +70,13 @@ public class MainPageController {
      */
     private void registerTableDataInteractions() {
         // Set column cell value factories
-        lastNameColumn.setCellValueFactory((TableColumn.CellDataFeatures<Student, String> param) ->
-                new SimpleStringProperty(param.getValue().getLastName())
-        );
+        lastNameColumn.setCellValueFactory( param -> new SimpleStringProperty(param.getValue().getLastName()) );
 
-        firstNameColumn.setCellValueFactory((TableColumn.CellDataFeatures<Student, String> param) ->
-                new SimpleStringProperty(param.getValue().getFirstName())
-        );
+        firstNameColumn.setCellValueFactory( param -> new SimpleStringProperty(param.getValue().getFirstName()) );
 
         // Create bindings for setting border color to gray on TextField content change
-        for(TextField f : new TextField[]{firstNameField, lastNameField, ebookNameField, ebookCodeField}) {
-            f.setOnKeyTyped(e -> f.setStyle("-fx-border-color: gray;"));
+        for (TextField f : new TextField[]{firstNameField, lastNameField, ebookNameField, ebookCodeField}) {
+            f.setOnKeyTyped(e -> f.setStyle("-fx-border-color: #5e5e5e;"));
         }
 
         mainTable.setOnMouseClicked((MouseEvent event) -> {
@@ -109,18 +100,30 @@ public class MainPageController {
                     Student.Memento preservedStudent = selected.saveToMemento();
                     saveTextFieldsToStudent(selected);
 
+                    if (ebookNameField.getText().trim().isEmpty() ^ ebookCodeField.getText().trim().isEmpty()) {
+                        // One field is filled in and the other is empty
+
+                        if (ebookNameField.getText().trim().isEmpty())
+                            ebookNameField.setStyle("-fx-border-color: red;");
+
+                        if (ebookCodeField.getText().trim().isEmpty())
+                            ebookCodeField.setStyle("-fx-border-color: red;");
+
+                        selected.loadFromMemento(preservedStudent);
+                        return;
+                    }
+
                     try {
                         ConnectionSource connectionSource = sqLiteConnector.getConnectionSource();
 
                         // Use transactionManager to cancel changes if something goes wrong
                         TransactionManager.callInTransaction(connectionSource, (Callable<Void>) () -> {
-                            Dao<Student, String> studentDao = DaoManager.createDao(connectionSource, Student.class);
-                            Dao<Ebook, String> ebookDao = DaoManager.createDao(connectionSource, Ebook.class);
-                            studentDao.update(selected);
-                            ebookDao.update(selected.getEbook());
+                            sqLiteConnector.getStudentDao().update(selected);
 
                             return null;
                         });
+
+                        resetFieldsStyle();
 
                     } catch (SQLException e) {
                         // If unique failed, then ebook code is already used
@@ -149,9 +152,8 @@ public class MainPageController {
         deleteRecordButton.setOnAction(event -> {
             // todo: confirm that user wants to delete it
             try {
-                Dao<Student, String> studentDao = DaoManager.createDao(sqLiteConnector.getConnectionSource(), Student.class);
-                studentDao.delete(selected);
-                List<Student> allStudents = studentDao.queryForAll();
+                sqLiteConnector.getStudentDao().delete(selected);
+                List<Student> allStudents = sqLiteConnector.getStudentDao().queryForAll();
                 mainTable.setItems(FXCollections.observableArrayList(allStudents));
                 mainTable.refresh();
                 finishChanges();
@@ -176,11 +178,9 @@ public class MainPageController {
 
                 // Create database tables if they don't exist
                 TableUtils.createTableIfNotExists(connectionSource, Student.class);
-                TableUtils.createTableIfNotExists(connectionSource, Ebook.class);
 
                 // Get all students
-                Dao<Student, String> studentDao = DaoManager.createDao(connectionSource, Student.class);
-                List<Student> allStudents = studentDao.queryForAll();
+                List<Student> allStudents = sqLiteConnector.getStudentDao().queryForAll();
 
                 // Generate list and set the items
                 mainTable.setItems(FXCollections.observableArrayList(allStudents));
@@ -263,8 +263,13 @@ public class MainPageController {
         firstNameField.setText(stu.getFirstName());
         lastNameField.setText(stu.getLastName());
         studentIdField.setText(stu.getStudentId());
-        ebookNameField.setText(stu.getEbook().getEbookName());
-        ebookCodeField.setText(stu.getEbook().getEbookCode());
+        if (stu.hasEbook()) {
+            ebookNameField.setText(stu.getEbookName());
+            ebookCodeField.setText(stu.getEbookCode());
+        } else {
+            ebookNameField.setText("");
+            ebookCodeField.setText("");
+        }
     }
 
     /**
@@ -276,7 +281,9 @@ public class MainPageController {
         stu.setFirstName(firstNameField.getText());
         stu.setLastName(lastNameField.getText());
         stu.setStudentId(studentIdField.getText());
-        stu.getEbook().setEbookName(ebookNameField.getText());
-        stu.getEbook().setEbookCode(ebookCodeField.getText());
+        stu.setEbookName(ebookNameField.getText());
+        stu.setEbookCode(ebookCodeField.getText());
+
+        stu.setHasEbook(!stu.getEbookCode().isEmpty());
     }
 }

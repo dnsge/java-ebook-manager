@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.geometry.*?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.paint.*?>
-
+<?import java.lang.String?>
 <AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2" fx:controller="org.dnsge.fbla.ebkmg.MainPageController">
   <children>
     <MenuBar fx:id="menuBar" layoutX="0.0" layoutY="0.0" prefWidth="600.0">
@@ -39,25 +37,35 @@
             <TableColumn maxWidth="5000.0" minWidth="10.0" prefWidth="100.0" text="First Name" fx:id="firstNameColumn" />
           </columns>
         </TableView>
-        <GridPane alignment="CENTER_LEFT" disable="false" gridLinesVisible="false" hgap="5.0" maxHeight="-Infinity" prefHeight="200.0" prefWidth="371.0" vgap="10.0" HBox.margin="$x1">
+        <GridPane alignment="CENTER_LEFT" disable="false" gridLinesVisible="false" hgap="5.0" maxHeight="-Infinity" prefHeight="229.0" prefWidth="371.0" vgap="10.0" HBox.hgrow="ALWAYS" HBox.margin="$x1">
           <children>
             <Label text="Student First Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
             <TextField id="lastNameField" fx:id="firstNameField" disable="true" editable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
             <Label text="Student Last Name" GridPane.columnIndex="0" GridPane.rowIndex="1" />
             <TextField fx:id="lastNameField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-            <Label text="E-Book Name" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-            <TextField fx:id="ebookNameField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-            <Label text="E-Book Code" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-            <TextField fx:id="ebookCodeField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+            <Label text="E-Book Name" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+            <TextField fx:id="ebookNameField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+            <Label text="E-Book Code" GridPane.columnIndex="0" GridPane.rowIndex="5" />
+            <TextField fx:id="ebookCodeField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+            <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="6">
               <children>
                 <Button fx:id="cancelUpdateButton" cancelButton="true" contentDisplay="CENTER" disable="true" mnemonicParsing="false" text="Cancel" />
                 <Button fx:id="updateDataButton" cancelButton="false" defaultButton="true" disable="true" mnemonicParsing="false" text="Update Information" />
               </children>
             </HBox>
-            <Label text="Student ID" GridPane.columnIndex="0" GridPane.rowIndex="2" />
-            <TextField fx:id="studentIdField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-            <Button fx:id="deleteRecordButton" disable="true" mnemonicParsing="false" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
+            <Label text="Student ID" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+            <TextField fx:id="studentIdField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+            <Button fx:id="deleteRecordButton" disable="true" mnemonicParsing="false" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
+            <Label text="Student Grade" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+            <ChoiceBox fx:id="studentGradeDropdown" disable="true" prefWidth="254.0" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
+              <items>
+                <FXCollections fx:factory="observableArrayList">
+                  <String fx:value="Item 1" />
+                  <String fx:value="Item 2" />
+                  <String fx:value="Item 3" />
+                </FXCollections>
+              </items>
+            </ChoiceBox>
           </children>
           <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" maxWidth="176.0" minWidth="10.0" prefWidth="100.0" />
@@ -69,6 +77,7 @@
           <rowConstraints>
             <RowConstraints maxHeight="111.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
             <RowConstraints maxHeight="194.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
+            <RowConstraints maxHeight="192.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
             <RowConstraints maxHeight="192.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
             <RowConstraints maxHeight="192.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
             <RowConstraints maxHeight="216.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />

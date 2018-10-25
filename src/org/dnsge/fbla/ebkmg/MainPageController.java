@@ -38,6 +38,7 @@ public class MainPageController {
     // Right side of the screen input nodes
     @FXML private TextField firstNameField;
     @FXML private TextField lastNameField;
+    @FXML private ChoiceBox<String> studentGradeDropdown;
     @FXML private TextField studentIdField;
     @FXML private TextField ebookNameField;
     @FXML private TextField ebookCodeField;
@@ -78,6 +79,8 @@ public class MainPageController {
         for (TextField f : new TextField[]{firstNameField, lastNameField, ebookNameField, ebookCodeField}) {
             f.setOnKeyTyped(e -> f.setStyle("-fx-border-color: #5e5e5e;"));
         }
+
+        studentGradeDropdown.setOnAction(e -> studentGradeDropdown.setStyle("-fx-border-color: #5e5e5e;"));
 
         mainTable.setOnMouseClicked((MouseEvent event) -> {
             ObservableList<Student> selectedStudentList = mainTable.getSelectionModel().getSelectedItems();
@@ -142,6 +145,7 @@ public class MainPageController {
                 }
             }
             mainTable.refresh();
+            finishChanges(); // todo: determine if I want this
         });
 
         cancelUpdateButton.setOnAction(event -> {
@@ -161,6 +165,8 @@ public class MainPageController {
                 e.printStackTrace();
             }
         });
+
+        studentGradeDropdown.setItems(FXCollections.observableArrayList("9", "10", "11", "12"));
     }
 
     /**
@@ -213,6 +219,7 @@ public class MainPageController {
     private void setDisableOnInteractions(boolean disabled) {
         firstNameField.setDisable(disabled);
         lastNameField.setDisable(disabled);
+        studentGradeDropdown.setDisable(disabled);
         studentIdField.setDisable(disabled);
         ebookNameField.setDisable(disabled);
         ebookCodeField.setDisable(disabled);
@@ -227,6 +234,7 @@ public class MainPageController {
     private void clearTextFields() {
         firstNameField.setText("");
         lastNameField.setText("");
+        studentGradeDropdown.getSelectionModel().clearSelection();
         studentIdField.setText("");
         ebookNameField.setText("");
         ebookCodeField.setText("");
@@ -240,6 +248,7 @@ public class MainPageController {
     private void resetFieldsStyle() {
         firstNameField.setStyle("");
         lastNameField.setStyle("");
+        studentGradeDropdown.setStyle("");
         studentIdField.setStyle("");
         ebookNameField.setStyle("");
         ebookCodeField.setStyle("");
@@ -262,6 +271,7 @@ public class MainPageController {
     private void loadTextFieldsFromStudent(Student stu) {
         firstNameField.setText(stu.getFirstName());
         lastNameField.setText(stu.getLastName());
+        studentGradeDropdown.getSelectionModel().select(stu.getGrade());
         studentIdField.setText(stu.getStudentId());
         if (stu.hasEbook()) {
             ebookNameField.setText(stu.getEbookName());
@@ -280,6 +290,7 @@ public class MainPageController {
     private void saveTextFieldsToStudent(Student stu) {
         stu.setFirstName(firstNameField.getText());
         stu.setLastName(lastNameField.getText());
+        stu.setGrade(studentGradeDropdown.getSelectionModel().getSelectedItem());
         stu.setStudentId(studentIdField.getText());
         stu.setEbookName(ebookNameField.getText());
         stu.setEbookCode(ebookCodeField.getText());

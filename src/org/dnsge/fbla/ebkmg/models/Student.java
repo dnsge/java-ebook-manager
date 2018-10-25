@@ -15,6 +15,7 @@ public final class Student {
     @DatabaseField(generatedId = true, allowGeneratedIdInsert = true) private int id;
     @DatabaseField private String firstName;
     @DatabaseField private String lastName;
+    @DatabaseField private String grade;
     @DatabaseField private String studentId;
     @DatabaseField private Boolean hasEbook;
     @DatabaseField private String ebookCode;
@@ -150,9 +151,18 @@ public final class Student {
     public void loadFromMemento(Memento memento) {
         firstName = memento.getFirstName();
         lastName = memento.getLastName();
+        grade = memento.getGrade();
         studentId = memento.getStudentId();
         ebookCode = memento.getEbookCode();
         ebookName = memento.getEbookName();
+    }
+
+    public String getGrade() {
+        return grade;
+    }
+
+    public void setGrade(String grade) {
+        this.grade = grade;
     }
 
     /**
@@ -166,6 +176,7 @@ public final class Student {
         private final Student originalStudent;
         private final String firstName;
         private final String lastName;
+        private final String grade;
         private final String studentId;
         private final String ebookName;
         private final String ebookCode;
@@ -175,6 +186,7 @@ public final class Student {
             this.originalStudent = originalStudent;
             this.firstName = originalStudent.getFirstName();
             this.lastName = originalStudent.getLastName();
+            this.grade = originalStudent.getGrade();
             this.studentId = originalStudent.getStudentId();
             this.databaseId = originalStudent.getId();
             this.ebookName = originalStudent.getEbookName();
@@ -206,6 +218,10 @@ public final class Student {
 
         String getLastName() {
             return lastName;
+        }
+
+        String getGrade() {
+            return grade;
         }
 
         String getStudentId() {

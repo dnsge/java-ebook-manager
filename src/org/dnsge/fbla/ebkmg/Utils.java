@@ -29,14 +29,14 @@ public class Utils {
      * Prompts the user to pick a file
      *
      * @param dialogTitle Title of the file picker dialog
-     * @param initalDirPath Directory path as a {@code File} that the dialog opens to
+     * @param initialDirPath Directory path as a {@code File} that the dialog opens to
      * @param ownerWindow  The owner window
      * @return File that is selected
      */
-    public static File openFilePickerDialog(String dialogTitle, File initalDirPath, Window ownerWindow) {
+    public static File openFilePickerDialog(String dialogTitle, File initialDirPath, Window ownerWindow) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(dialogTitle);
-        fileChooser.setInitialDirectory(initalDirPath);
+        fileChooser.setInitialDirectory(initialDirPath);
 
         return fileChooser.showOpenDialog(ownerWindow);
     }

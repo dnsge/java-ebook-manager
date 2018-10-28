@@ -40,7 +40,7 @@
         <GridPane alignment="CENTER_LEFT" disable="false" gridLinesVisible="false" hgap="5.0" maxHeight="-Infinity" prefHeight="229.0" prefWidth="371.0" vgap="10.0" HBox.hgrow="ALWAYS" HBox.margin="$x1">
           <children>
             <Label text="Student First Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-            <TextField id="lastNameField" fx:id="firstNameField" disable="true" editable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+            <TextField fx:id="firstNameField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
             <Label text="Student Last Name" GridPane.columnIndex="0" GridPane.rowIndex="1" />
             <TextField fx:id="lastNameField" disable="true" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <Label text="E-Book Name" GridPane.columnIndex="0" GridPane.rowIndex="4" />

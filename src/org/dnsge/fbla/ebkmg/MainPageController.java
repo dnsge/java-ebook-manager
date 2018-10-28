@@ -10,6 +10,9 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import org.dnsge.fbla.ebkmg.extensions.ChangeWrapperHolder;
+import org.dnsge.fbla.ebkmg.extensions.ChoiceBoxWrapper;
+import org.dnsge.fbla.ebkmg.extensions.TextFieldWrapper;
 import org.dnsge.fbla.ebkmg.models.Student;
 
 import java.io.File;
@@ -18,7 +21,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-// todo: git repo
+import static javafx.scene.control.Alert.AlertType;
+
 
 /**
  * Controller for the main JavaFX view
@@ -26,35 +30,33 @@ import java.util.concurrent.Callable;
  * @author Daniel Sage
  * @version 0.2
  */
-public class MainPageController {
+public final class MainPageController {
     // Menu bar stuff
     // todo: add more buttons/functionality to menubar
-    @FXML private MenuBar  menuBar;
-    @FXML private MenuItem connectToDatabase;
+        @FXML private MenuBar  menuBar;
+        @FXML private MenuItem connectToDatabase;
     // Table related stuff
-    @FXML private TableView<Student>           mainTable;
-    @FXML private TableColumn<Student, String> lastNameColumn;
-    @FXML private TableColumn<Student, String> firstNameColumn;
+        @FXML private TableView<Student> mainTable;
+        @FXML private TableColumn<Student, String> lastNameColumn;
+        @FXML private TableColumn<Student, String> firstNameColumn;
     // Right side of the screen input nodes
-    @FXML private TextField firstNameField;
-    @FXML private TextField lastNameField;
-    @FXML private ChoiceBox<String> studentGradeDropdown;
-    @FXML private TextField studentIdField;
-    @FXML private TextField ebookNameField;
-    @FXML private TextField ebookCodeField;
-    @FXML private Button updateDataButton;
-    @FXML private Button cancelUpdateButton;
-    @FXML private Button deleteRecordButton;
+        @FXML private TextField firstNameField, lastNameField, studentIdField, ebookNameField, ebookCodeField;
+        @FXML private ChoiceBox<String> studentGradeDropdown;
+        @FXML private Button updateDataButton;
+        @FXML private Button cancelUpdateButton;
+        @FXML private Button deleteRecordButton;
     // Bottom toolbar stuff
-    @FXML private ToolBar buttonsToolbar;
-    @FXML private Button newRecordButton;
-    @FXML private Button generateReportButton; // Todo: this
+        @FXML private ToolBar buttonsToolbar;
+        @FXML private Button newRecordButton;
+        @FXML private Button generateReportButton; // Todo: this
 
     private Student selected;
     private SQLiteConnector sqLiteConnector = SQLiteConnector.getInstance();
 
-    // todo: make a way to 'delete' an ebook record
-    // todo: maybe consolidate ebook table into one table only? it would be easier probably
+    // IChangeWrappers and ChangeWrapperHolder
+    private TextFieldWrapper firstName, lastName, studentId, ebookName, ebookCode;
+    private ChoiceBoxWrapper<String> studentGrade;
+    private ChangeWrapperHolder wrapperHolder;
 
     /**
      * Called by JavaFX once all FXML fields/nodes have been created/registered
@@ -64,6 +66,7 @@ public class MainPageController {
         registerMenuBarInteractions();
         registerTableDataInteractions();
         registerToolBarInteractions();
+        createWrappers();
     }
 
     /**
@@ -71,16 +74,8 @@ public class MainPageController {
      */
     private void registerTableDataInteractions() {
         // Set column cell value factories
-        lastNameColumn.setCellValueFactory( param -> new SimpleStringProperty(param.getValue().getLastName()) );
-
+        lastNameColumn.setCellValueFactory(  param -> new SimpleStringProperty(param.getValue().getLastName())  );
         firstNameColumn.setCellValueFactory( param -> new SimpleStringProperty(param.getValue().getFirstName()) );
-
-        // Create bindings for setting border color to gray on TextField content change
-        for (TextField f : new TextField[]{firstNameField, lastNameField, ebookNameField, ebookCodeField}) {
-            f.setOnKeyTyped(e -> f.setStyle("-fx-border-color: #5e5e5e;"));
-        }
-
-        studentGradeDropdown.setOnAction(e -> studentGradeDropdown.setStyle("-fx-border-color: #5e5e5e;"));
 
         mainTable.setOnMouseClicked((MouseEvent event) -> {
             ObservableList<Student> selectedStudentList = mainTable.getSelectionModel().getSelectedItems();
@@ -89,6 +84,7 @@ public class MainPageController {
                 selected = selectedStudentList.get(0);
                 loadTextFieldsFromStudent(selected);
                 resetFieldsStyle();
+                wrapperHolder.updateAll();
             }
         });
 
@@ -103,14 +99,13 @@ public class MainPageController {
                     Student.Memento preservedStudent = selected.saveToMemento();
                     saveTextFieldsToStudent(selected);
 
-                    if (ebookNameField.getText().trim().isEmpty() ^ ebookCodeField.getText().trim().isEmpty()) {
+                    if (ebookName.isEmpty() ^ ebookCode.isEmpty()) {
                         // One field is filled in and the other is empty
+                        if (ebookName.isEmpty())
+                            ebookName.highlightError();
 
-                        if (ebookNameField.getText().trim().isEmpty())
-                            ebookNameField.setStyle("-fx-border-color: red;");
-
-                        if (ebookCodeField.getText().trim().isEmpty())
-                            ebookCodeField.setStyle("-fx-border-color: red;");
+                        if (ebookCode.isEmpty())
+                            ebookCode.highlightError();
 
                         selected.loadFromMemento(preservedStudent);
                         return;
@@ -122,7 +117,6 @@ public class MainPageController {
                         // Use transactionManager to cancel changes if something goes wrong
                         TransactionManager.callInTransaction(connectionSource, (Callable<Void>) () -> {
                             sqLiteConnector.getStudentDao().update(selected);
-
                             return null;
                         });
 
@@ -136,7 +130,7 @@ public class MainPageController {
                             loadTextFieldsFromStudent(selected);
 
                             resetFieldsStyle();
-                            ebookCodeField.setStyle("-fx-border-color: red;");
+                            ebookCode.highlightError();
                             // TODO: add error message popup/label
                         } else {
                             e.printStackTrace();
@@ -145,28 +139,32 @@ public class MainPageController {
                 }
             }
             mainTable.refresh();
-            finishChanges(); // todo: determine if I want this
+            wrapperHolder.updateAll();
         });
 
         cancelUpdateButton.setOnAction(event -> {
+            if (wrapperHolder.anyChanged()) {
+                if (!askYesOrNo("You have unsaved changes, are you sure you want to exit?")) {
+                    return;
+                }
+            }
             finishChanges();
-            // todo: prompt if there are unsaved changes
         });
 
         deleteRecordButton.setOnAction(event -> {
-            // todo: confirm that user wants to delete it
-            try {
-                sqLiteConnector.getStudentDao().delete(selected);
-                List<Student> allStudents = sqLiteConnector.getStudentDao().queryForAll();
-                mainTable.setItems(FXCollections.observableArrayList(allStudents));
-                mainTable.refresh();
-                finishChanges();
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (askYesOrNo("Are you sure you want to delete this record?")) {
+                try {
+                    sqLiteConnector.getStudentDao().delete(selected);
+                    List<Student> allStudents = sqLiteConnector.getStudentDao().queryForAll();
+                    mainTable.setItems(FXCollections.observableArrayList(allStudents));
+                    mainTable.refresh();
+                    finishChanges();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
-        studentGradeDropdown.setItems(FXCollections.observableArrayList("9", "10", "11", "12"));
     }
 
     /**
@@ -176,7 +174,9 @@ public class MainPageController {
         // Bind 'Connect to Database' menu button
         connectToDatabase.setOnAction((ActionEvent event) -> {
             File databaseFile = Utils.openFilePickerDialog("Select Database", "L:/ebook_data/", menuBar.getScene().getWindow());
-
+            if (databaseFile == null) {
+                return;
+            }
             try {
                 // Connect database
                 sqLiteConnector.connect(databaseFile.getAbsolutePath());
@@ -211,18 +211,29 @@ public class MainPageController {
         });
     }
 
+
+    /**
+     * Creates the IChangeWrappers for the Nodes
+     */
+    private void createWrappers() {
+        firstName = new TextFieldWrapper(firstNameField);
+        lastName = new TextFieldWrapper(lastNameField);
+        studentId = new TextFieldWrapper(studentIdField);
+        ebookName = new TextFieldWrapper(ebookNameField);
+        ebookCode = new TextFieldWrapper(ebookCodeField);
+        studentGrade = new ChoiceBoxWrapper<>(studentGradeDropdown);
+        wrapperHolder = new ChangeWrapperHolder(firstName, lastName, studentId, ebookName, ebookCode, studentGrade);
+
+        studentGrade.setItems("9", "10", "11", "12");
+    }
+
     /**
      * Sets whether the input nodes on the right half of the screen should be disabled
      *
      * @param disabled Whether the input methods should be disabled
      */
     private void setDisableOnInteractions(boolean disabled) {
-        firstNameField.setDisable(disabled);
-        lastNameField.setDisable(disabled);
-        studentGradeDropdown.setDisable(disabled);
-        studentIdField.setDisable(disabled);
-        ebookNameField.setDisable(disabled);
-        ebookCodeField.setDisable(disabled);
+        wrapperHolder.setAllDisabled(disabled);
         updateDataButton.setDisable(disabled);
         cancelUpdateButton.setDisable(disabled);
         deleteRecordButton.setDisable(disabled);
@@ -232,12 +243,7 @@ public class MainPageController {
      * Clears the text fields and resets their style
      */
     private void clearTextFields() {
-        firstNameField.setText("");
-        lastNameField.setText("");
-        studentGradeDropdown.getSelectionModel().clearSelection();
-        studentIdField.setText("");
-        ebookNameField.setText("");
-        ebookCodeField.setText("");
+        wrapperHolder.clearAll();
 
         resetFieldsStyle();
     }
@@ -246,12 +252,7 @@ public class MainPageController {
      * Resets the style of the text fields
      */
     private void resetFieldsStyle() {
-        firstNameField.setStyle("");
-        lastNameField.setStyle("");
-        studentGradeDropdown.setStyle("");
-        studentIdField.setStyle("");
-        ebookNameField.setStyle("");
-        ebookCodeField.setStyle("");
+        wrapperHolder.clearAllStyle();
     }
 
     /**
@@ -269,16 +270,16 @@ public class MainPageController {
      * @param stu Student to load from
      */
     private void loadTextFieldsFromStudent(Student stu) {
-        firstNameField.setText(stu.getFirstName());
-        lastNameField.setText(stu.getLastName());
-        studentGradeDropdown.getSelectionModel().select(stu.getGrade());
-        studentIdField.setText(stu.getStudentId());
+        firstName.setValue(stu.getFirstName());
+        lastName.setValue(stu.getLastName());
+        studentGrade.setValue(stu.getGrade());
+        studentId.setValue(stu.getStudentId());
         if (stu.hasEbook()) {
-            ebookNameField.setText(stu.getEbookName());
-            ebookCodeField.setText(stu.getEbookCode());
+            ebookName.setValue(stu.getEbookName());
+            ebookCode.setValue(stu.getEbookCode());
         } else {
-            ebookNameField.setText("");
-            ebookCodeField.setText("");
+            ebookName.clear();
+            ebookCode.clear();
         }
     }
 
@@ -288,13 +289,26 @@ public class MainPageController {
      * @param stu Student to save to
      */
     private void saveTextFieldsToStudent(Student stu) {
-        stu.setFirstName(firstNameField.getText());
-        stu.setLastName(lastNameField.getText());
-        stu.setGrade(studentGradeDropdown.getSelectionModel().getSelectedItem());
-        stu.setStudentId(studentIdField.getText());
-        stu.setEbookName(ebookNameField.getText());
-        stu.setEbookCode(ebookCodeField.getText());
+        stu.setFirstName(firstName.asText());
+        stu.setLastName(lastName.asText());
+        stu.setGrade(studentGrade.asText());
+        stu.setStudentId(studentId.asText());
+        stu.setEbookName(ebookName.asText());
+        stu.setEbookCode(ebookCode.asText());
 
         stu.setHasEbook(!stu.getEbookCode().isEmpty());
+    }
+
+    /**
+     * Confirms that the user want's to do something
+     *
+     * @param prompt String prompt to show the user
+     * @return If the user clicked Yes
+     */
+    private boolean askYesOrNo(String prompt) {
+        Alert alert = new Alert(AlertType.CONFIRMATION, prompt, ButtonType.NO, ButtonType.YES);
+        alert.setTitle("Confirm");
+        alert.showAndWait();
+        return alert.getResult() == ButtonType.YES;
     }
 }

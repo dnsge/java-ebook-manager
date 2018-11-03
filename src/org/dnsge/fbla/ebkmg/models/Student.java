@@ -1,7 +1,12 @@
 package org.dnsge.fbla.ebkmg.models;
 
+import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.dnsge.fbla.ebkmg.SQLiteConnector;
+
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * Represents a student in a SQLite database
@@ -18,8 +23,9 @@ public final class Student {
     @DatabaseField private String grade;
     @DatabaseField private String studentId;
     @DatabaseField private Boolean hasEbook;
-    @DatabaseField private String ebookCode;
-    @DatabaseField private String ebookName;
+    @DatabaseField(unique = true) private String ebookCode;
+
+    private Ebook ownedEbook;
 
     /**
      * Student constructor for ORMLite
@@ -109,26 +115,41 @@ public final class Student {
         return hasEbook;
     }
 
-    public void setHasEbook(Boolean hasEbook) {
-        this.hasEbook = hasEbook;
-    }
-
     public String getEbookCode() {
         return ebookCode;
     }
 
-    public String getEbookName() {
-        return ebookName;
-    }
-
     public void setEbookCode(String ebookCode) {
         this.ebookCode = ebookCode;
+        try {
+            ownedEbook = Ebook.getOrCreate(ebookCode);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
-    public void setEbookName(String ebookName) {
-        this.ebookName = ebookName;
+    public Ebook getOwnedEbook() {
+        if (hasEbook) {
+            if (ownedEbook != null) {
+                return ownedEbook;
+            } else {
+                try {
+                    ownedEbook = Ebook.get(ebookCode);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                return ownedEbook;
+            }
+
+        } else {
+            return null;
+        }
     }
 
+    public void setHasEbook(Boolean hasEbook) {
+        this.hasEbook = hasEbook;
+    }
 
     /**
      * Creates a memento savepoint for this student
@@ -153,8 +174,7 @@ public final class Student {
         lastName = memento.getLastName();
         grade = memento.getGrade();
         studentId = memento.getStudentId();
-        ebookCode = memento.getEbookCode();
-        ebookName = memento.getEbookName();
+        ebookCode = memento.getEbookId();
     }
 
     public String getGrade() {
@@ -178,8 +198,7 @@ public final class Student {
         private final String lastName;
         private final String grade;
         private final String studentId;
-        private final String ebookName;
-        private final String ebookCode;
+        private final String ebookId;
         private final int databaseId;
 
         Memento(Student originalStudent) {
@@ -189,8 +208,7 @@ public final class Student {
             this.grade = originalStudent.getGrade();
             this.studentId = originalStudent.getStudentId();
             this.databaseId = originalStudent.getId();
-            this.ebookName = originalStudent.getEbookName();
-            this.ebookCode = originalStudent.getEbookCode();
+            this.ebookId = originalStudent.getEbookCode();
         }
 
         /**
@@ -228,12 +246,27 @@ public final class Student {
             return studentId;
         }
 
-        String getEbookName() {
-            return ebookName;
+        String getEbookId() {
+            return ebookId;
         }
+    }
 
-        String getEbookCode() {
-            return ebookCode;
-        }
+    /**
+     * Checks if an E-book code has already been used on another student
+     *
+     * @param code E-book code to check for
+     * @return {@code true} if used, {@code false} if not used
+     * @throws SQLException If there's an issue
+     */
+    public static Boolean codeUsed(String code, Student excluded) throws SQLException {
+        Dao<Student, String> dao = SQLiteConnector.getInstance().getStudentDao();
+        List<Student> allCodes = dao.queryBuilder().where().eq("ebookCode", code).query();
+        System.out.println("ALL CODES FOUND: " + allCodes.toString());
+        return allCodes.size() > 0 && allCodes.get(0).equals(excluded);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s (%s) (%s)", firstName, lastName, studentId, ebookCode);
     }
 }

@@ -75,4 +75,9 @@ public final class TextFieldWrapper implements IChangeWrapper<TextField, String>
     public String asText() {
         return getWrapped().getText();
     }
+
+    @Override
+    public String toString() {
+        return asText();
+    }
 }

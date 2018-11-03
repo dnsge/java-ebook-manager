@@ -7,9 +7,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-
 import java.io.IOException;
-import java.sql.SQLException;
 
 public class Main extends Application {
 
@@ -22,6 +20,7 @@ public class Main extends Application {
         primaryStage.setTitle("Main Page");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
+        primaryStage.setResizable(false);
 
         // Intercept all close requests
         primaryStage.setOnCloseRequest(event -> {

@@ -5,6 +5,7 @@ import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import javafx.beans.property.SimpleBooleanProperty;
+import org.dnsge.fbla.ebkmg.models.Ebook;
 import org.dnsge.fbla.ebkmg.models.Student;
 
 import java.io.IOException;
@@ -16,18 +17,19 @@ import java.sql.SQLException;
  * @author Daniel Sage
  * @version 0.2
  */
-final class SQLiteConnector {
+public final class SQLiteConnector {
     private static SQLiteConnector ourInstance = new SQLiteConnector();
     private SimpleBooleanProperty connected = new SimpleBooleanProperty(false);
     private ConnectionSource connectionSource;
     private Dao<Student, String> studentDao;
+    private Dao<Ebook, String> ebookDao;
 
     /**
      * Gets singleton instance
      *
      * @return Singleton SQLiteConnector instance
      */
-    static SQLiteConnector getInstance() { return ourInstance; }
+    public static SQLiteConnector getInstance() { return ourInstance; }
 
     private SQLiteConnector() { }
 
@@ -48,6 +50,7 @@ final class SQLiteConnector {
 
         try {
             studentDao = DaoManager.createDao(connectionSource, Student.class);
+            ebookDao = DaoManager.createDao(connectionSource, Ebook.class);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -113,8 +116,16 @@ final class SQLiteConnector {
      * @return Active {@code Student} DAO
      * @see Dao
      */
-    Dao<Student, String> getStudentDao() {
+    public Dao<Student, String> getStudentDao() {
         return studentDao;
+    }
+
+    public Dao<Ebook, String> getEbookDao() {
+        return ebookDao;
+    }
+
+    public Ebook getEbook(Integer ebookId) throws SQLException {
+        return getEbookDao().queryForId(ebookId.toString());
     }
 
 }

@@ -13,12 +13,16 @@ import javafx.scene.input.MouseEvent;
 import org.dnsge.fbla.ebkmg.extensions.ChangeWrapperHolder;
 import org.dnsge.fbla.ebkmg.extensions.ChoiceBoxWrapper;
 import org.dnsge.fbla.ebkmg.extensions.TextFieldWrapper;
+import org.dnsge.fbla.ebkmg.models.Ebook;
 import org.dnsge.fbla.ebkmg.models.Student;
+import org.dnsge.fbla.ebkmg.util.Pair;
+import org.dnsge.fbla.ebkmg.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 import static javafx.scene.control.Alert.AlertType;
@@ -34,13 +38,14 @@ public final class MainPageController {
     // Menu bar stuff
     // todo: add more buttons/functionality to menubar
         @FXML private MenuBar  menuBar;
-        @FXML private MenuItem connectToDatabase;
+        @FXML private MenuItem connectToDatabase, closeConnection;
     // Table related stuff
         @FXML private TableView<Student> mainTable;
         @FXML private TableColumn<Student, String> lastNameColumn;
         @FXML private TableColumn<Student, String> firstNameColumn;
     // Right side of the screen input nodes
-        @FXML private TextField firstNameField, lastNameField, studentIdField, ebookNameField, ebookCodeField;
+        @FXML private TextField firstNameField, lastNameField, studentIdField, ebookCodeField;
+        @FXML private TextField ebookNameField, redemptionDateField;
         @FXML private ChoiceBox<String> studentGradeDropdown;
         @FXML private Button updateDataButton;
         @FXML private Button cancelUpdateButton;
@@ -54,7 +59,7 @@ public final class MainPageController {
     private SQLiteConnector sqLiteConnector = SQLiteConnector.getInstance();
 
     // IChangeWrappers and ChangeWrapperHolder
-    private TextFieldWrapper firstName, lastName, studentId, ebookName, ebookCode;
+    private TextFieldWrapper firstName, lastName, studentId, ebookCode;
     private ChoiceBoxWrapper<String> studentGrade;
     private ChangeWrapperHolder wrapperHolder;
 
@@ -64,7 +69,7 @@ public final class MainPageController {
     @FXML
     public void initialize() {
         registerMenuBarInteractions();
-        registerTableDataInteractions();
+        registerStudentTableDataInteractions();
         registerToolBarInteractions();
         createWrappers();
     }
@@ -72,7 +77,7 @@ public final class MainPageController {
     /**
      * Registers event listeners for things related to the main table
      */
-    private void registerTableDataInteractions() {
+    private void registerStudentTableDataInteractions() {
         // Set column cell value factories
         lastNameColumn.setCellValueFactory(  param -> new SimpleStringProperty(param.getValue().getLastName())  );
         firstNameColumn.setCellValueFactory( param -> new SimpleStringProperty(param.getValue().getFirstName()) );
@@ -85,6 +90,8 @@ public final class MainPageController {
                 loadTextFieldsFromStudent(selected);
                 resetFieldsStyle();
                 wrapperHolder.updateAll();
+
+                System.out.println(Objects.requireNonNull(selected.getOwnedEbook()).getAssignmentDate());
             }
         });
 
@@ -99,17 +106,18 @@ public final class MainPageController {
                     Student.Memento preservedStudent = selected.saveToMemento();
                     saveTextFieldsToStudent(selected);
 
-                    if (ebookName.isEmpty() ^ ebookCode.isEmpty()) {
-                        // One field is filled in and the other is empty
-                        if (ebookName.isEmpty())
-                            ebookName.highlightError();
-
-                        if (ebookCode.isEmpty())
+                    try {
+                        boolean codeUsed = Student.codeUsed(ebookCode.toString(), selected);
+                        if (codeUsed) {
                             ebookCode.highlightError();
+                            selected.loadFromMemento(preservedStudent);
 
-                        selected.loadFromMemento(preservedStudent);
-                        return;
-                    }
+                            warnUser("This E-Book code has already been paired with another student.");
+
+                            return;
+                        }
+                    } catch (SQLException ignored) {}
+
 
                     try {
                         ConnectionSource connectionSource = sqLiteConnector.getConnectionSource();
@@ -131,6 +139,8 @@ public final class MainPageController {
 
                             resetFieldsStyle();
                             ebookCode.highlightError();
+                            warnUser("This E-Book code has already been used!");
+
                             // TODO: add error message popup/label
                         } else {
                             e.printStackTrace();
@@ -144,7 +154,7 @@ public final class MainPageController {
 
         cancelUpdateButton.setOnAction(event -> {
             if (wrapperHolder.anyChanged()) {
-                if (!askYesOrNo("You have unsaved changes, are you sure you want to exit?")) {
+                if (!askYesOrNo("You have unsaved changes, are you sure you want to cancel?")) {
                     return;
                 }
             }
@@ -173,10 +183,22 @@ public final class MainPageController {
     private void registerMenuBarInteractions() {
         // Bind 'Connect to Database' menu button
         connectToDatabase.setOnAction((ActionEvent event) -> {
+            if (wrapperHolder.anyChanged()) {
+                if (!askYesOrNo("You have unsaved changes, are you sure you want to close your previous connection and open a new one?")) {
+                    return;
+                }
+            }
+
+
             File databaseFile = Utils.openFilePickerDialog("Select Database", "L:/ebook_data/", menuBar.getScene().getWindow());
             if (databaseFile == null) {
                 return;
             }
+
+            wrapperHolder.clearAll();
+            wrapperHolder.clearAllStyle();
+            setDisableOnInteractions(true);
+
             try {
                 // Connect database
                 sqLiteConnector.connect(databaseFile.getAbsolutePath());
@@ -184,15 +206,39 @@ public final class MainPageController {
 
                 // Create database tables if they don't exist
                 TableUtils.createTableIfNotExists(connectionSource, Student.class);
+                TableUtils.createTableIfNotExists(connectionSource, Ebook.class);
 
                 // Get all students
                 List<Student> allStudents = sqLiteConnector.getStudentDao().queryForAll();
 
                 // Generate list and set the items
                 mainTable.setItems(FXCollections.observableArrayList(allStudents));
+                closeConnection.setDisable(false);
 
             } catch (SQLException | IOException e) {
                 e.printStackTrace();
+                // todo: error popup
+            }
+        });
+
+        closeConnection.setOnAction(e -> {
+            if (wrapperHolder.anyChanged()) {
+                if (!askYesOrNo("You have unsaved changes, are you sure you want to close your connection?")) {
+                    return;
+                }
+            }
+
+            try {
+                sqLiteConnector.disconnectIfConnected();
+                wrapperHolder.clearAll();
+                wrapperHolder.clearAllStyle();
+
+                setDisableOnInteractions(true);
+
+                closeConnection.setDisable(true);
+                mainTable.setItems(FXCollections.observableArrayList());
+            } catch (IOException e1) {
+                e1.printStackTrace();
             }
         });
     }
@@ -219,10 +265,9 @@ public final class MainPageController {
         firstName = new TextFieldWrapper(firstNameField);
         lastName = new TextFieldWrapper(lastNameField);
         studentId = new TextFieldWrapper(studentIdField);
-        ebookName = new TextFieldWrapper(ebookNameField);
         ebookCode = new TextFieldWrapper(ebookCodeField);
         studentGrade = new ChoiceBoxWrapper<>(studentGradeDropdown);
-        wrapperHolder = new ChangeWrapperHolder(firstName, lastName, studentId, ebookName, ebookCode, studentGrade);
+        wrapperHolder = new ChangeWrapperHolder(firstName, lastName, studentId, ebookCode, studentGrade);
 
         studentGrade.setItems("9", "10", "11", "12");
     }
@@ -275,10 +320,8 @@ public final class MainPageController {
         studentGrade.setValue(stu.getGrade());
         studentId.setValue(stu.getStudentId());
         if (stu.hasEbook()) {
-            ebookName.setValue(stu.getEbookName());
             ebookCode.setValue(stu.getEbookCode());
         } else {
-            ebookName.clear();
             ebookCode.clear();
         }
     }
@@ -293,7 +336,6 @@ public final class MainPageController {
         stu.setLastName(lastName.asText());
         stu.setGrade(studentGrade.asText());
         stu.setStudentId(studentId.asText());
-        stu.setEbookName(ebookName.asText());
         stu.setEbookCode(ebookCode.asText());
 
         stu.setHasEbook(!stu.getEbookCode().isEmpty());
@@ -310,5 +352,20 @@ public final class MainPageController {
         alert.setTitle("Confirm");
         alert.showAndWait();
         return alert.getResult() == ButtonType.YES;
+    }
+
+    private void warnUser(String message) {
+        Alert alert = new Alert(AlertType.ERROR, message);
+        alert.setTitle("Error");
+        alert.showAndWait();
+    }
+
+    /**
+     * @param baseStudent Student that is being popped up
+     * @return {@code Pair<String, Boolean>} object with the value of the new code and if the user clicked save or not
+     */
+    private Pair<String, Boolean> showBookPopup(Student baseStudent) {
+        BookPopup p = new BookPopup(baseStudent);
+        return p.showAndWait();
     }
 }

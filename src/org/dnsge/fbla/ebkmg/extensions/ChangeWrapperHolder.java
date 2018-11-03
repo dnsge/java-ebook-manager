@@ -51,6 +51,7 @@ public final class ChangeWrapperHolder {
     public void clearAll() {
         for (IChangeWrapper wrapper : wrappers) {
             wrapper.clear();
+            wrapper.update();
         }
     }
 

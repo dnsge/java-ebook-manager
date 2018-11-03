@@ -1,4 +1,4 @@
-package org.dnsge.fbla.ebkmg;
+package org.dnsge.fbla.ebkmg.util;
 
 import javafx.event.ActionEvent;
 import javafx.scene.Node;

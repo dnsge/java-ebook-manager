@@ -1,18 +1,19 @@
-package org.dnsge.fbla.ebkmg.models;
+package org.dnsge.fbla.ebkmg.db;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import org.dnsge.fbla.ebkmg.SQLiteConnector;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a student in a SQLite database
  *
  * @author Daniel Sage
- * @version 0.2
+ * @version 0.3
  */
 @DatabaseTable(tableName = "students")
 public final class Student {
@@ -21,7 +22,7 @@ public final class Student {
     @DatabaseField private String firstName;
     @DatabaseField private String lastName;
     @DatabaseField private String grade;
-    @DatabaseField private String studentId;
+    @DatabaseField(unique = true) private String studentId;
     @DatabaseField private Boolean hasEbook;
     @DatabaseField(unique = true) private String ebookCode;
 
@@ -37,12 +38,70 @@ public final class Student {
      *
      * @param firstName Student first name
      * @param lastName Student last name
+     * @param grade Student grade (9-12)
      * @param studentId Student ID
      */
-    public Student(String firstName, String lastName, String studentId) {
+    public Student(String firstName, String lastName, String grade, String studentId) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.grade = grade;
         this.studentId = studentId;
+        this.hasEbook = false;
+        this.ebookCode = null;
+    }
+
+    /**
+     * Checks if an E-book code has already been used on another student
+     *
+     * @param code E-book code to check for
+     * @return {@code true} if used, {@code false} if not used
+     * @throws SQLException If there's an issue
+     */
+    public static Boolean codeUsed(String code, Student excluded) throws SQLException {
+        Dao<Student, String> dao = SQLiteConnector.getInstance().getStudentDao();
+        List<Student> allCodes = dao.queryBuilder().where().eq("ebookCode", code).query();
+        System.out.println("ALL CODES FOUND: " + allCodes.toString());
+        return allCodes.size() > 0 && allCodes.get(0).equals(excluded);
+    }
+
+    public static Student whoOwns(String code) throws SQLException {
+        Dao<Student, String> dao = SQLiteConnector.getInstance().getStudentDao();
+        List<Student> allCodes = dao.queryBuilder().where().eq("ebookCode", code).query();
+        return allCodes.size() > 0 ? allCodes.get(0) : null;
+    }
+
+    public static Student getFromStudentId(String studentId) throws SQLException {
+        SQLiteConnector connector = SQLiteConnector.getInstance();
+        Dao<Student, String> dao = connector.getStudentDao();
+
+        HashMap<String, Object> hm = new HashMap<>();
+        hm.put("studentId", studentId);
+
+        List<Student> list = dao.queryForFieldValues(hm);
+        if (list.size() > 0) {
+            return list.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    public static boolean studentWithIdExists(String studentId) {
+        try {
+            return getFromStudentId(studentId) != null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean otherStudentWithIdExists(String studentId, Student me) {
+        try {
+            Student got = getFromStudentId(studentId);
+            return got != null && !got.equals(me);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     /**
@@ -55,24 +114,19 @@ public final class Student {
     }
 
     /**
+     * Set student's database ID
+     *
+     * @param id Database ID
+     */
+    protected void setId(int id) {
+        this.id = id;
+    }
+
+    /**
      * @return Student first name
      */
     public String getFirstName() {
         return firstName;
-    }
-
-    /**
-     * @return Student last name
-     */
-    public String getLastName() {
-        return lastName;
-    }
-
-    /**
-     * @return Student ID
-     */
-    public String getStudentId() {
-        return studentId;
     }
 
     /**
@@ -85,12 +139,26 @@ public final class Student {
     }
 
     /**
+     * @return Student last name
+     */
+    public String getLastName() {
+        return lastName;
+    }
+
+    /**
      * Set student last name
      *
      * @param lastName Last name
      */
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    /**
+     * @return Student ID
+     */
+    public String getStudentId() {
+        return studentId;
     }
 
     /**
@@ -102,15 +170,6 @@ public final class Student {
         this.studentId = studentId;
     }
 
-    /**
-     * Set student's database ID
-     *
-     * @param id Database ID
-     */
-    protected void setId(int id) {
-        this.id = id;
-    }
-
     public Boolean hasEbook() {
         return hasEbook;
     }
@@ -119,10 +178,10 @@ public final class Student {
         return ebookCode;
     }
 
-    public void setEbookCode(String ebookCode) {
+    public void setEbookCode(String ebookName, String ebookCode) {
         this.ebookCode = ebookCode;
         try {
-            ownedEbook = Ebook.getOrCreate(ebookCode);
+            ownedEbook = Ebook.getOrCreate(ebookName, ebookCode);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -183,6 +242,36 @@ public final class Student {
 
     public void setGrade(String grade) {
         this.grade = grade;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s (%s) (%s)", firstName, lastName, studentId, ebookCode);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Student student = (Student) o;
+        return Objects.equals(firstName, student.firstName) &&
+                Objects.equals(lastName, student.lastName) &&
+                Objects.equals(grade, student.grade) &&
+                Objects.equals(studentId, student.studentId) &&
+                Objects.equals(hasEbook, student.hasEbook) &&
+                Objects.equals(ebookCode, student.ebookCode) &&
+                Objects.equals(ownedEbook, student.ownedEbook);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(firstName, lastName, grade, studentId, hasEbook, ebookCode, ownedEbook);
+    }
+
+    public boolean filledOutProperly() {
+        return !firstName.trim().isEmpty() &&
+                !lastName.trim().isEmpty() &&
+                !studentId.trim().isEmpty();
     }
 
     /**
@@ -249,24 +338,5 @@ public final class Student {
         String getEbookId() {
             return ebookId;
         }
-    }
-
-    /**
-     * Checks if an E-book code has already been used on another student
-     *
-     * @param code E-book code to check for
-     * @return {@code true} if used, {@code false} if not used
-     * @throws SQLException If there's an issue
-     */
-    public static Boolean codeUsed(String code, Student excluded) throws SQLException {
-        Dao<Student, String> dao = SQLiteConnector.getInstance().getStudentDao();
-        List<Student> allCodes = dao.queryBuilder().where().eq("ebookCode", code).query();
-        System.out.println("ALL CODES FOUND: " + allCodes.toString());
-        return allCodes.size() > 0 && allCodes.get(0).equals(excluded);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s %s (%s) (%s)", firstName, lastName, studentId, ebookCode);
     }
 }

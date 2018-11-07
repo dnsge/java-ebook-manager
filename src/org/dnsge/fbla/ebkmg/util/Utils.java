@@ -13,7 +13,7 @@ import java.io.File;
  * @author Daniel Sage
  * @version 0.1
  */
-public class Utils {
+public final class Utils {
 
     /**
      * Gets the Window/Stage of an ActionEvent
@@ -30,7 +30,7 @@ public class Utils {
      *
      * @param dialogTitle Title of the file picker dialog
      * @param initialDirPath Directory path as a {@code File} that the dialog opens to
-     * @param ownerWindow  The owner window
+     * @param ownerWindow  The getOwner window
      * @return File that is selected
      */
     public static File openFilePickerDialog(String dialogTitle, File initialDirPath, Window ownerWindow) {
@@ -46,7 +46,7 @@ public class Utils {
      *
      * @param dialogTitle Title of the file picker dialog
      * @param initialDirPath Directory path as a {@code String} that the dialog opens to
-     * @param ownerWindow The owner window
+     * @param ownerWindow The getOwner window
      * @return File that is selected
      */
     public static File openFilePickerDialog(String dialogTitle, String initialDirPath, Window ownerWindow) {

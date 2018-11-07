@@ -16,8 +16,10 @@ public final class TextFieldWrapper implements IChangeWrapper<TextField, String>
     private String lastSavedValue;
     private Boolean changed = false;
 
+    private static final String modificationColor = "#5e5e5e";
+
     public TextFieldWrapper(TextField wrapped) {
-        this(wrapped, "#5e5e5e");
+        this(wrapped, modificationColor);
     }
 
     private TextFieldWrapper(TextField wrapped, String updatedColor) {
@@ -32,13 +34,17 @@ public final class TextFieldWrapper implements IChangeWrapper<TextField, String>
 
     private void setModificationListeners(String updatedColor) {
         getWrapped().setOnKeyTyped(event -> {
-            changed = !asText().equals(lastSavedValue);
-            if (changed) {
-                getWrapped().setStyle(String.format("-fx-border-color: %s;", updatedColor));
-            } else {
-                getWrapped().setStyle("");
-            }
+            updateModifiedHighlight(updatedColor);
         });
+    }
+
+    private void updateModifiedHighlight(String updatedColor) {
+        changed = !asText().equals(lastSavedValue);
+        if (changed) {
+            getWrapped().setStyle(String.format("-fx-border-color: %s;", updatedColor));
+        } else {
+            getWrapped().setStyle("");
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -59,6 +65,7 @@ public final class TextFieldWrapper implements IChangeWrapper<TextField, String>
     public void update() {
         changed = false;
         lastSavedValue = asText();
+        updateModifiedHighlight(modificationColor);
     }
 
     @Override

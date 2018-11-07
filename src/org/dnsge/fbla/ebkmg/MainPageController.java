@@ -10,11 +10,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
+import org.dnsge.fbla.ebkmg.db.Ebook;
+import org.dnsge.fbla.ebkmg.db.SQLiteConnector;
+import org.dnsge.fbla.ebkmg.db.Student;
 import org.dnsge.fbla.ebkmg.extensions.ChangeWrapperHolder;
 import org.dnsge.fbla.ebkmg.extensions.ChoiceBoxWrapper;
 import org.dnsge.fbla.ebkmg.extensions.TextFieldWrapper;
-import org.dnsge.fbla.ebkmg.models.Ebook;
-import org.dnsge.fbla.ebkmg.models.Student;
+import org.dnsge.fbla.ebkmg.popup.AlertCreator;
+import org.dnsge.fbla.ebkmg.popup.NewEbookPopup;
+import org.dnsge.fbla.ebkmg.popup.NewStudentPopup;
 import org.dnsge.fbla.ebkmg.util.Pair;
 import org.dnsge.fbla.ebkmg.util.Utils;
 
@@ -22,46 +26,74 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Callable;
-
-import static javafx.scene.control.Alert.AlertType;
 
 
 /**
  * Controller for the main JavaFX view
  *
  * @author Daniel Sage
- * @version 0.2
+ * @version 0.3
  */
 public final class MainPageController {
     // Menu bar stuff
     // todo: add more buttons/functionality to menubar
-        @FXML private MenuBar  menuBar;
-        @FXML private MenuItem connectToDatabase, closeConnection;
-    // Table related stuff
-        @FXML private TableView<Student> mainTable;
-        @FXML private TableColumn<Student, String> lastNameColumn;
-        @FXML private TableColumn<Student, String> firstNameColumn;
-    // Right side of the screen input nodes
-        @FXML private TextField firstNameField, lastNameField, studentIdField, ebookCodeField;
-        @FXML private TextField ebookNameField, redemptionDateField;
-        @FXML private ChoiceBox<String> studentGradeDropdown;
-        @FXML private Button updateDataButton;
-        @FXML private Button cancelUpdateButton;
-        @FXML private Button deleteRecordButton;
-    // Bottom toolbar stuff
-        @FXML private ToolBar buttonsToolbar;
-        @FXML private Button newRecordButton;
-        @FXML private Button generateReportButton; // Todo: this
+    @FXML
+    private MenuBar menuBar;
+    @FXML
+    private MenuItem connectToDatabase, closeConnection;
 
-    private Student selected;
-    private SQLiteConnector sqLiteConnector = SQLiteConnector.getInstance();
+    @FXML
+    private TabPane mainTabPane;
+    @FXML
+    private Tab studentTab;
+    @FXML
+    private Tab ebookTab;
+
+    // Table related stuff
+    @FXML
+    private TableView<Student> studentTableView;
+    @FXML
+    private TableColumn<Student, String> lastNameColumn;
+    @FXML
+    private TableColumn<Student, String> firstNameColumn;
+    @FXML
+    private TableView<Ebook> ebookTableView;
+    @FXML
+    private TableColumn<Ebook, String> ebookCodeColumn;
+    @FXML
+    private TableColumn<Ebook, String> ebookRedemptionDateColumn;
+    // Right side of the screen input nodes
+    // student
+    @FXML
+    private TextField firstNameField, lastNameField, studentIdField;
+    @FXML
+    private ChoiceBox<String> studentGradeDropdown;
+    @FXML
+    private Button updateStudentDataButton, cancelUpdateStudentButton, deleteRecordButton;
+    // ebook
+    @FXML
+    private TextField ebookNameField, ebookCodeField, redemptionDateField;
+    @FXML
+    private Button updateEbookDataButton, cancelUpdateEbookButton, viewStudentButton;
+    // Bottom toolbar stuff
+    @FXML
+    private ToolBar buttonsToolbar;
+    @FXML
+    private Button newRecordButton;
+    @FXML
+    private Button generateReportButton; // Todo: this
+
+    private Student selectedStudent;
+    private Ebook selectedEbook;
+    private SQLiteConnector connector = SQLiteConnector.getInstance();
 
     // IChangeWrappers and ChangeWrapperHolder
-    private TextFieldWrapper firstName, lastName, studentId, ebookCode;
+    private TextFieldWrapper firstName, lastName, studentId;
+    private TextFieldWrapper ebookName, ebookCode, redemptionDate;
     private ChoiceBoxWrapper<String> studentGrade;
-    private ChangeWrapperHolder wrapperHolder;
+    private ChangeWrapperHolder studentWrapperHolder;
+    private ChangeWrapperHolder ebookWrapperHolder;
 
     /**
      * Called by JavaFX once all FXML fields/nodes have been created/registered
@@ -70,108 +102,187 @@ public final class MainPageController {
     public void initialize() {
         registerMenuBarInteractions();
         registerStudentTableDataInteractions();
+        registerEbookTableDataInteractions();
         registerToolBarInteractions();
         createWrappers();
+
+        setDisableOnInteractionsStudent(true);
+        setDisableOnInteractionsEbook(true);
+        buttonsToolbar.setDisable(true);
+    }
+
+    private void reloadTextBoxesStudent() {
+        ObservableList<Student> selectedStudentList = studentTableView.getSelectionModel().getSelectedItems();
+        if (selectedStudentList.size() > 0) {
+            setDisableOnInteractionsStudent(false);
+            selectedStudent = selectedStudentList.get(0);
+            loadTextFieldsFromStudent(selectedStudent);
+            resetFieldsStyle();
+        }
     }
 
     /**
-     * Registers event listeners for things related to the main table
+     * Registers event listeners for things related to the student table
      */
     private void registerStudentTableDataInteractions() {
         // Set column cell value factories
-        lastNameColumn.setCellValueFactory(  param -> new SimpleStringProperty(param.getValue().getLastName())  );
-        firstNameColumn.setCellValueFactory( param -> new SimpleStringProperty(param.getValue().getFirstName()) );
+        lastNameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getLastName()));
+        firstNameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFirstName()));
 
-        mainTable.setOnMouseClicked((MouseEvent event) -> {
-            ObservableList<Student> selectedStudentList = mainTable.getSelectionModel().getSelectedItems();
-            if (selectedStudentList.size() > 0) {
-                setDisableOnInteractions(false);
-                selected = selectedStudentList.get(0);
-                loadTextFieldsFromStudent(selected);
-                resetFieldsStyle();
-                wrapperHolder.updateAll();
-
-                System.out.println(Objects.requireNonNull(selected.getOwnedEbook()).getAssignmentDate());
-            }
+        studentTableView.setOnMouseClicked((MouseEvent event) -> {
+            reloadTextBoxesStudent();
         });
 
-        updateDataButton.setOnAction(event -> {
-            ObservableList<Student> selectedStudentList = mainTable.getSelectionModel().getSelectedItems();
+        updateStudentDataButton.setOnAction(event -> {
+            ObservableList<Student> selectedStudentList = studentTableView.getSelectionModel().getSelectedItems();
 
-            // Make sure we have actually selected a row
+            // Make sure we have actually selectedStudent a row, though it shouldn't be possible to happen without
             if (selectedStudentList.size() > 0) {
-                if (selected.equals(selectedStudentList.get(0))) { // Check if its the same object, should always be
+                if (!Student.otherStudentWithIdExists(studentId.asText(), selectedStudent)) {
 
                     // Create backup and save
-                    Student.Memento preservedStudent = selected.saveToMemento();
-                    saveTextFieldsToStudent(selected);
+                    Student.Memento preservedStudent = selectedStudent.saveToMemento();
+                    saveTextFieldsToStudent(selectedStudent);
+
+                    if (!selectedStudent.filledOutProperly()) {
+                        selectedStudent.loadFromMemento(preservedStudent);
+                        loadTextFieldsFromStudent(selectedStudent);
+                        AlertCreator.errorUser("You need to fill out each entry field!");
+//                        System.out.println(selectedStudent.getFirstName().trim().isEmpty());
+//                        System.out.println(selectedStudent.getLastName().trim().isEmpty());
+//                        System.out.println(selectedStudent.getGrade().trim().isEmpty());
+//                        System.out.println(selectedStudent.getStudentId().trim().isEmpty());
+                        return;
+                    }
 
                     try {
-                        boolean codeUsed = Student.codeUsed(ebookCode.toString(), selected);
-                        if (codeUsed) {
-                            ebookCode.highlightError();
-                            selected.loadFromMemento(preservedStudent);
-
-                            warnUser("This E-Book code has already been paired with another student.");
-
-                            return;
-                        }
-                    } catch (SQLException ignored) {}
-
-
-                    try {
-                        ConnectionSource connectionSource = sqLiteConnector.getConnectionSource();
 
                         // Use transactionManager to cancel changes if something goes wrong
-                        TransactionManager.callInTransaction(connectionSource, (Callable<Void>) () -> {
-                            sqLiteConnector.getStudentDao().update(selected);
+                        TransactionManager.callInTransaction(connector.getConnectionSource(), (Callable<Void>) () -> {
+                            connector.getStudentDao().update(selectedStudent);
                             return null;
                         });
 
-                        resetFieldsStyle();
+                        studentWrapperHolder.clearAllStyle();
+                        studentWrapperHolder.updateAll();
 
                     } catch (SQLException e) {
-                        // If unique failed, then ebook code is already used
-                        if (e.getCause().getMessage().contains("constraint failed")) {
-                            // reload from backup
-                            selected.loadFromMemento(preservedStudent);
-                            loadTextFieldsFromStudent(selected);
+                        selectedStudent.loadFromMemento(preservedStudent);
+                        loadTextFieldsFromStudent(selectedStudent);
 
-                            resetFieldsStyle();
-                            ebookCode.highlightError();
-                            warnUser("This E-Book code has already been used!");
-
-                            // TODO: add error message popup/label
-                        } else {
-                            e.printStackTrace();
-                        }
+                        e.printStackTrace();
+                        AlertCreator.unknownError();
                     }
+                } else {
+                    AlertCreator.errorUser("A Student with that Student ID already exists!");
                 }
             }
-            mainTable.refresh();
-            wrapperHolder.updateAll();
+            studentTableView.refresh();
         });
 
-        cancelUpdateButton.setOnAction(event -> {
-            if (wrapperHolder.anyChanged()) {
-                if (!askYesOrNo("You have unsaved changes, are you sure you want to cancel?")) {
+        cancelUpdateStudentButton.setOnAction(event -> {
+            if (studentWrapperHolder.anyChanged()) {
+                if (!AlertCreator.askYesOrNo("You have unsaved changes, are you sure you want to cancel?")) {
                     return;
                 }
             }
-            finishChanges();
+            finishStudentChanges();
         });
 
         deleteRecordButton.setOnAction(event -> {
-            if (askYesOrNo("Are you sure you want to delete this record?")) {
+            if (AlertCreator.askYesOrNo("Are you sure you want to delete this record?")) {
                 try {
-                    sqLiteConnector.getStudentDao().delete(selected);
-                    List<Student> allStudents = sqLiteConnector.getStudentDao().queryForAll();
-                    mainTable.setItems(FXCollections.observableArrayList(allStudents));
-                    mainTable.refresh();
-                    finishChanges();
+                    connector.getStudentDao().delete(selectedStudent);
+                    List<Student> allStudents = connector.getStudentDao().queryForAll();
+                    studentTableView.setItems(FXCollections.observableArrayList(allStudents));
+                    studentTableView.refresh();
+                    finishStudentChanges();
                 } catch (SQLException e) {
                     e.printStackTrace();
+                    AlertCreator.unknownError();
                 }
+            }
+        });
+
+    }
+
+    /**
+     * Registers event listeners for things related to the ebook table
+     */
+    private void registerEbookTableDataInteractions() {
+
+        ebookCodeColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getCode()));
+        ebookRedemptionDateColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getAssignmentDateString()));
+
+        ebookTableView.setOnMouseClicked(e -> {
+            ObservableList<Ebook> selectedEbookList = ebookTableView.getSelectionModel().getSelectedItems();
+            if (selectedEbookList.size() > 0) {
+                setDisableOnInteractionsEbook(false);
+                selectedEbook = selectedEbookList.get(0);
+                loadTextFieldsFromEbook(selectedEbook);
+                resetFieldsStyle();
+
+                if (selectedEbook.getOwner() == null) {
+                    viewStudentButton.setDisable(true);
+                }
+            }
+        });
+
+        updateEbookDataButton.setOnAction(event -> {
+            ObservableList<Ebook> selectedEbookList = ebookTableView.getSelectionModel().getSelectedItems();
+
+            // Make sure we have actually selectedStudent a row
+            if (selectedEbookList.size() > 0) {
+                if (!Ebook.otherExists(ebookCode.asText(), selectedEbook)) {
+                    if (!selectedEbook.filledOutProperly()) {
+                        AlertCreator.errorUser("You need to fill out each entry field!");
+                        return;
+                    }
+
+                    Ebook.Memento preservedEbook = selectedEbook.saveToMemento();
+                    saveTextFieldsToEbook(selectedEbook);
+                    try {
+                        TransactionManager.callInTransaction(connector.getConnectionSource(), (Callable<Void>) () -> {
+                            connector.getEbookDao().update(selectedEbook);
+                            return null;
+                        });
+
+                        ebookWrapperHolder.clearAllStyle();
+                        ebookWrapperHolder.updateAll();
+
+                    } catch (SQLException e) {
+                        selectedEbook.loadFromMemento(preservedEbook);
+                        loadTextFieldsFromEbook(selectedEbook);
+
+                        e.printStackTrace();
+                        AlertCreator.unknownError();
+                    }
+                } else {
+                    AlertCreator.errorUser("An E-Book with that code already exists!");
+                }
+            }
+            ebookTableView.refresh();
+        });
+
+        cancelUpdateEbookButton.setOnAction(event -> {
+            if (ebookWrapperHolder.anyChanged()) {
+                if (!AlertCreator.askYesOrNo("You have unsaved changes, are you sure you want to cancel?")) {
+                    return;
+                }
+            }
+            finishEbookChanges();
+        });
+
+        viewStudentButton.setOnAction(event -> {
+            try {
+                Student stu = selectedEbook.getOwner();
+                if (stu != null) {
+                    mainTabPane.getSelectionModel().select(studentTab);
+                    studentTableView.getSelectionModel().select(stu);
+                    reloadTextBoxesStudent();
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
             }
         });
 
@@ -183,8 +294,8 @@ public final class MainPageController {
     private void registerMenuBarInteractions() {
         // Bind 'Connect to Database' menu button
         connectToDatabase.setOnAction((ActionEvent event) -> {
-            if (wrapperHolder.anyChanged()) {
-                if (!askYesOrNo("You have unsaved changes, are you sure you want to close your previous connection and open a new one?")) {
+            if (studentWrapperHolder.anyChanged()) {
+                if (!AlertCreator.askYesOrNo("You have unsaved changes, are you sure you want to close your previous connection and open a new one?")) {
                     return;
                 }
             }
@@ -195,48 +306,58 @@ public final class MainPageController {
                 return;
             }
 
-            wrapperHolder.clearAll();
-            wrapperHolder.clearAllStyle();
-            setDisableOnInteractions(true);
+            clearTextFields();
+            setDisableOnInteractionsStudent(true);
+            setDisableOnInteractionsEbook(true);
 
             try {
                 // Connect database
-                sqLiteConnector.connect(databaseFile.getAbsolutePath());
-                ConnectionSource connectionSource = sqLiteConnector.getConnectionSource();
+                connector.connect(databaseFile.getAbsolutePath());
+                ConnectionSource connectionSource = connector.getConnectionSource();
 
                 // Create database tables if they don't exist
                 TableUtils.createTableIfNotExists(connectionSource, Student.class);
                 TableUtils.createTableIfNotExists(connectionSource, Ebook.class);
 
                 // Get all students
-                List<Student> allStudents = sqLiteConnector.getStudentDao().queryForAll();
+                List<Student> allStudents = connector.getStudentDao().queryForAll();
+                List<Ebook> allEbooks = connector.getEbookDao().queryForAll();
 
                 // Generate list and set the items
-                mainTable.setItems(FXCollections.observableArrayList(allStudents));
+                studentTableView.setItems(FXCollections.observableArrayList(allStudents));
+                ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
                 closeConnection.setDisable(false);
 
             } catch (SQLException | IOException e) {
+                try {
+                    connector.disconnectIfConnected();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
                 e.printStackTrace();
-                // todo: error popup
+                AlertCreator.errorUser("There was an issue reading that database file");
             }
         });
 
         closeConnection.setOnAction(e -> {
-            if (wrapperHolder.anyChanged()) {
-                if (!askYesOrNo("You have unsaved changes, are you sure you want to close your connection?")) {
+            if (studentWrapperHolder.anyChanged() || ebookWrapperHolder.anyChanged()) {
+                if (!AlertCreator.askYesOrNo("You have unsaved changes, are you sure you want to close your connection?")) {
                     return;
                 }
             }
 
             try {
-                sqLiteConnector.disconnectIfConnected();
-                wrapperHolder.clearAll();
-                wrapperHolder.clearAllStyle();
+                connector.disconnectIfConnected();
+                studentWrapperHolder.clearAll();
+                studentWrapperHolder.clearAllStyle();
+                ebookWrapperHolder.clearAll();
+                ebookWrapperHolder.clearAllStyle();
 
-                setDisableOnInteractions(true);
+                setDisableOnInteractionsStudent(true);
+                setDisableOnInteractionsEbook(true);
 
                 closeConnection.setDisable(true);
-                mainTable.setItems(FXCollections.observableArrayList());
+                studentTableView.setItems(FXCollections.observableArrayList());
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -249,46 +370,103 @@ public final class MainPageController {
     private void registerToolBarInteractions() {
         // Set listener for when database connection state is changed
         // If connected, enable bottom toolbar, else disable it
-        sqLiteConnector.getConnectedProperty().addListener((observable, oldValue, newValue) -> buttonsToolbar.setDisable(!newValue));
+        connector.getConnectedProperty().addListener((observable, oldValue, newValue) -> buttonsToolbar.setDisable(!newValue));
 
         newRecordButton.setOnAction(event -> {
-            // todo: set up popup window to make new record
+            if (mainTabPane.getSelectionModel().getSelectedIndex() == 0) { // Student tab
+                NewStudentPopup nsp = new NewStudentPopup();
+                Pair<Student, Boolean> result = nsp.showAndWait();
+                if (result.getR()) {
+                    try {
+                        TransactionManager.callInTransaction(connector.getConnectionSource(), (Callable<Void>) () -> {
+                            connector.getStudentDao().create(result.getL());
 
+                            List<Student> allStudents = connector.getStudentDao().queryForAll();
+                            studentTableView.setItems(FXCollections.observableArrayList(allStudents));
+                            studentTableView.refresh();
+
+                            return null;
+                        });
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        AlertCreator.unknownError();
+                    }
+                }
+            } else {
+                NewEbookPopup nep = new NewEbookPopup();
+                Pair<Ebook, Boolean> result = nep.showAndWait();
+                if (result.getR()) {
+                    try {
+                        TransactionManager.callInTransaction(connector.getConnectionSource(), (Callable<Void>) () -> {
+                            connector.getEbookDao().create(result.getL());
+
+                            List<Ebook> allEbooks = connector.getEbookDao().queryForAll();
+                            ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
+                            ebookTableView.refresh();
+
+                            return null;
+                        });
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                        AlertCreator.unknownError();
+                    }
+                }
+            }
         });
     }
 
 
     /**
-     * Creates the IChangeWrappers for the Nodes
+     * Creates the IChangeWrappers for the Nodes and sets up the combo box(es)
      */
     private void createWrappers() {
         firstName = new TextFieldWrapper(firstNameField);
         lastName = new TextFieldWrapper(lastNameField);
         studentId = new TextFieldWrapper(studentIdField);
-        ebookCode = new TextFieldWrapper(ebookCodeField);
         studentGrade = new ChoiceBoxWrapper<>(studentGradeDropdown);
-        wrapperHolder = new ChangeWrapperHolder(firstName, lastName, studentId, ebookCode, studentGrade);
 
         studentGrade.setItems("9", "10", "11", "12");
+
+        ebookName = new TextFieldWrapper(ebookNameField);
+        ebookCode = new TextFieldWrapper(ebookCodeField);
+        redemptionDate = new TextFieldWrapper(redemptionDateField);
+
+        studentWrapperHolder = new ChangeWrapperHolder(firstName, lastName, studentId, studentGrade);
+        ebookWrapperHolder = new ChangeWrapperHolder(ebookName, ebookCode, redemptionDate);
     }
 
     /**
-     * Sets whether the input nodes on the right half of the screen should be disabled
+     * Sets whether the input nodes on the right half of the screen
+     * of the student tab should be disabled
      *
      * @param disabled Whether the input methods should be disabled
      */
-    private void setDisableOnInteractions(boolean disabled) {
-        wrapperHolder.setAllDisabled(disabled);
-        updateDataButton.setDisable(disabled);
-        cancelUpdateButton.setDisable(disabled);
+    private void setDisableOnInteractionsStudent(boolean disabled) {
+        studentWrapperHolder.setAllDisabled(disabled);
+        updateStudentDataButton.setDisable(disabled);
+        cancelUpdateStudentButton.setDisable(disabled);
         deleteRecordButton.setDisable(disabled);
+    }
+
+    /**
+     * Sets whether the input nodes on the right half of the screen
+     * of the ebook tab should be disabled
+     *
+     * @param disabled Whether the input methods should be disabled
+     */
+    private void setDisableOnInteractionsEbook(boolean disabled) {
+        ebookWrapperHolder.setAllDisabled(disabled);
+        updateEbookDataButton.setDisable(disabled);
+        cancelUpdateEbookButton.setDisable(disabled);
+        viewStudentButton.setDisable(disabled);
     }
 
     /**
      * Clears the text fields and resets their style
      */
     private void clearTextFields() {
-        wrapperHolder.clearAll();
+        studentWrapperHolder.clearAll();
+        ebookWrapperHolder.clearAll();
 
         resetFieldsStyle();
     }
@@ -297,16 +475,30 @@ public final class MainPageController {
      * Resets the style of the text fields
      */
     private void resetFieldsStyle() {
-        wrapperHolder.clearAllStyle();
+        studentWrapperHolder.clearAllStyle();
+        ebookWrapperHolder.clearAllStyle();
     }
 
     /**
-     * Deselects the row in the table and clears/disables the text fields
+     * Deselects the row in the table and clears/disables the text fields for
+     * the student tab
      */
-    private void finishChanges() {
-        clearTextFields();
-        setDisableOnInteractions(true);
-        mainTable.getSelectionModel().clearSelection();
+    private void finishStudentChanges() {
+        studentWrapperHolder.clearAllStyle();
+        studentWrapperHolder.clearAll();
+        setDisableOnInteractionsStudent(true);
+        studentTableView.getSelectionModel().clearSelection();
+    }
+
+    /**
+     * Deselects the row in the table and clears/disables the text fields for
+     * the ebook tab
+     */
+    private void finishEbookChanges() {
+        ebookWrapperHolder.clearAllStyle();
+        ebookWrapperHolder.clearAll();
+        setDisableOnInteractionsEbook(true);
+        ebookTableView.getSelectionModel().clearSelection();
     }
 
     /**
@@ -319,11 +511,19 @@ public final class MainPageController {
         lastName.setValue(stu.getLastName());
         studentGrade.setValue(stu.getGrade());
         studentId.setValue(stu.getStudentId());
-        if (stu.hasEbook()) {
-            ebookCode.setValue(stu.getEbookCode());
-        } else {
-            ebookCode.clear();
-        }
+        studentWrapperHolder.updateAll();
+    }
+
+    /**
+     * Fills in the text fields based off of an Ebook's information
+     *
+     * @param ebook Ebook to load from
+     */
+    private void loadTextFieldsFromEbook(Ebook ebook) {
+        ebookName.setValue(ebook.getName());
+        ebookCode.setValue(ebook.getCode());
+        redemptionDate.setValue(ebook.getAssignmentDateString());
+        ebookWrapperHolder.updateAll();
     }
 
     /**
@@ -336,36 +536,16 @@ public final class MainPageController {
         stu.setLastName(lastName.asText());
         stu.setGrade(studentGrade.asText());
         stu.setStudentId(studentId.asText());
-        stu.setEbookCode(ebookCode.asText());
-
-        stu.setHasEbook(!stu.getEbookCode().isEmpty());
     }
 
     /**
-     * Confirms that the user want's to do something
+     * Saves the information in the text fields to a Student
      *
-     * @param prompt String prompt to show the user
-     * @return If the user clicked Yes
+     * @param ebook Ebook to save to
      */
-    private boolean askYesOrNo(String prompt) {
-        Alert alert = new Alert(AlertType.CONFIRMATION, prompt, ButtonType.NO, ButtonType.YES);
-        alert.setTitle("Confirm");
-        alert.showAndWait();
-        return alert.getResult() == ButtonType.YES;
+    private void saveTextFieldsToEbook(Ebook ebook) {
+        ebook.setName(ebookName.asText());
+        ebook.setCode(ebookCode.asText());
     }
 
-    private void warnUser(String message) {
-        Alert alert = new Alert(AlertType.ERROR, message);
-        alert.setTitle("Error");
-        alert.showAndWait();
-    }
-
-    /**
-     * @param baseStudent Student that is being popped up
-     * @return {@code Pair<String, Boolean>} object with the value of the new code and if the user clicked save or not
-     */
-    private Pair<String, Boolean> showBookPopup(Student baseStudent) {
-        BookPopup p = new BookPopup(baseStudent);
-        return p.showAndWait();
-    }
 }

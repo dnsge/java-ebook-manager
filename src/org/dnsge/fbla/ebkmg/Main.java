@@ -6,6 +6,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.dnsge.fbla.ebkmg.db.SQLiteConnector;
 
 import java.io.IOException;
 
@@ -13,6 +14,10 @@ public class Main extends Application {
 
     // todo: this location thing
     private final static String location = String.format("%s\\ebook-manager\\", System.getProperty("user.home"));
+
+    public static void main(String[] args) {
+         launch(args);
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception{
@@ -34,10 +39,6 @@ public class Main extends Application {
             }
             Platform.exit();
         });
-    }
-
-    public static void main(String[] args) {
-         launch(args);
     }
 
 }

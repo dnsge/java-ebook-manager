@@ -8,17 +8,18 @@ import javafx.scene.control.ChoiceBox;
  *
  * @author dnsge
  * @version 0.2
- * @since 0.2
  * @see IChangeWrapper
+ * @since 0.2
  */
 public final class ChoiceBoxWrapper<T> implements IChangeWrapper<ChoiceBox<T>, T> {
 
+    private static final String modificationColor = "#5e5e5e";
     private final ChoiceBox<T> wrapped;
     private T lastSavedValue;
     private Boolean changed = false;
 
     public ChoiceBoxWrapper(ChoiceBox<T> wrapped) {
-        this(wrapped, "#5e5e5e");
+        this(wrapped, modificationColor);
     }
 
     private ChoiceBoxWrapper(ChoiceBox<T> wrapped, String updatedColor) {
@@ -38,18 +39,22 @@ public final class ChoiceBoxWrapper<T> implements IChangeWrapper<ChoiceBox<T>, T
 
     private void setModificationListeners(String updatedColor) {
         getWrapped().setOnAction(event -> {
-            try {
-                changed = !selectedItem().equals(lastSavedValue);
-            } catch (NullPointerException e) {
-                changed = true; // todo: true or false
-                return;
-            }
-            if (changed) {
-                getWrapped().setStyle(String.format("-fx-border-color: %s;", updatedColor));
-            } else {
-                getWrapped().setStyle("");
-            }
+            updateModifiedHighlight(updatedColor);
         });
+    }
+
+    private void updateModifiedHighlight(String updatedColor) {
+        try {
+            changed = !selectedItem().equals(lastSavedValue);
+        } catch (NullPointerException e) {
+            changed = false;
+            return;
+        }
+        if (changed) {
+            getWrapped().setStyle(String.format("-fx-border-color: %s;", updatedColor));
+        } else {
+            getWrapped().setStyle("");
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////
@@ -70,6 +75,7 @@ public final class ChoiceBoxWrapper<T> implements IChangeWrapper<ChoiceBox<T>, T
     public void update() {
         changed = false;
         lastSavedValue = selectedItem();
+        updateModifiedHighlight(modificationColor);
     }
 
     @Override

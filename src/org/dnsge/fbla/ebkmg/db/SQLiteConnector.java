@@ -1,12 +1,10 @@
-package org.dnsge.fbla.ebkmg;
+package org.dnsge.fbla.ebkmg.db;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import javafx.beans.property.SimpleBooleanProperty;
-import org.dnsge.fbla.ebkmg.models.Ebook;
-import org.dnsge.fbla.ebkmg.models.Student;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -24,14 +22,14 @@ public final class SQLiteConnector {
     private Dao<Student, String> studentDao;
     private Dao<Ebook, String> ebookDao;
 
+    private SQLiteConnector() { }
+
     /**
      * Gets singleton instance
      *
      * @return Singleton SQLiteConnector instance
      */
     public static SQLiteConnector getInstance() { return ourInstance; }
-
-    private SQLiteConnector() { }
 
     /**
      * Connects to a database
@@ -42,7 +40,7 @@ public final class SQLiteConnector {
      * @throws SQLException if there is an issue connecting to the database
      * @throws IOException if something goes wrong
      */
-    void connect(String connectionUrl) throws SQLException, IOException {
+    public void connect(String connectionUrl) throws SQLException, IOException {
         disconnectIfConnected();
 
         connectionSource = new JdbcConnectionSource("jdbc:sqlite:" + connectionUrl);
@@ -75,7 +73,7 @@ public final class SQLiteConnector {
      *
      * @throws IOException if something goes wrong
      */
-    void disconnectIfConnected() throws IOException {
+    public void disconnectIfConnected() throws IOException {
         try {
             disconnect();
         } catch (IllegalStateException ignored) {}
@@ -84,7 +82,7 @@ public final class SQLiteConnector {
     /**
      * @return If currently connected to a database
      */
-    boolean isConnected() {
+    public boolean isConnected() {
         return connected.getValue();
     }
 
@@ -94,7 +92,7 @@ public final class SQLiteConnector {
      * @return The connection source for the database
      * @throws IllegalStateException if not yet connected to the database
      */
-    ConnectionSource getConnectionSource() {
+    public ConnectionSource getConnectionSource() {
         if (!isConnected()) {
             throw new IllegalStateException("Not yet connected to SQLite database");
         }
@@ -106,7 +104,7 @@ public final class SQLiteConnector {
      * @return The {@code connected} SimpleBooleanProperty
      * @see SimpleBooleanProperty
      */
-    SimpleBooleanProperty getConnectedProperty() {
+    public SimpleBooleanProperty getConnectedProperty() {
         return connected;
     }
 
@@ -122,10 +120,6 @@ public final class SQLiteConnector {
 
     public Dao<Ebook, String> getEbookDao() {
         return ebookDao;
-    }
-
-    public Ebook getEbook(Integer ebookId) throws SQLException {
-        return getEbookDao().queryForId(ebookId.toString());
     }
 
 }

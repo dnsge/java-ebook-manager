@@ -93,7 +93,11 @@ public final class Ebook {
     }
 
     public String getAssignmentDateString() {
-        return new SimpleDateFormat("MM/dd/yy hh:mm aa").format(getAssignmentDate());
+        try {
+            return new SimpleDateFormat("MM/dd/yy hh:mm aa").format(getAssignmentDate());
+        } catch (NullPointerException e) {
+            return "";
+        }
     }
 
     public Student getOwner() {
@@ -145,6 +149,10 @@ public final class Ebook {
                 !code.trim().isEmpty();
     }
 
+    public void setAssignmentDate(Date assignmentDate) {
+        this.assignmentDate = assignmentDate;
+    }
+
     /**
      * Memento (<a href="https://www.oodesign.com/memento-pattern.html">oodesign.com/memento-pattern</a>)
      * that Stores the state of a {@code Ebook} object
@@ -167,13 +175,6 @@ public final class Ebook {
         }
 
         /**
-         * @return Original student used to make the memento
-         */
-        public Ebook getoriginalEbook() {
-            return originalEbook;
-        }
-
-        /**
          * Returns a replica student
          * Doesn't have a database ID
          *
@@ -185,6 +186,9 @@ public final class Ebook {
             return t;
         }
 
+        /**
+         * @return Original student used to make the memento
+         */
         Ebook getOriginalEbook() {
             return originalEbook;
         }

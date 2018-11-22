@@ -19,8 +19,6 @@ import javafx.stage.Stage;
 import org.dnsge.fbla.ebkmg.db.Ebook;
 import org.dnsge.fbla.ebkmg.util.Pair;
 
-import java.util.Date;
-
 public class NewEbookPopup {
 
     private TextField nameField;
@@ -115,7 +113,7 @@ public class NewEbookPopup {
 
     public Pair<Ebook, Boolean> showAndWait() {
         myStage.showAndWait();
-        return new Pair<>(new Ebook(nameField.getText().trim(), redemptionField.getText().trim(), new Date()), wantSave);
+        return new Pair<>(new Ebook(nameField.getText().trim(), redemptionField.getText().trim(), null), wantSave);
     }
 
 }

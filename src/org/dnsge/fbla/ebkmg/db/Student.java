@@ -182,9 +182,16 @@ public final class Student {
         this.ebookCode = ebookCode;
         try {
             ownedEbook = Ebook.getOrCreate(ebookName, ebookCode);
+            hasEbook = true;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setEbook(Ebook ebook) {
+        ebookCode = ebook.getCode();
+        ownedEbook = ebook;
+        hasEbook = true;
     }
 
     public Ebook getOwnedEbook() {

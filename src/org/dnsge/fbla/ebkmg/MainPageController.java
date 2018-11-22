@@ -19,12 +19,14 @@ import org.dnsge.fbla.ebkmg.extensions.TextFieldWrapper;
 import org.dnsge.fbla.ebkmg.popup.AlertCreator;
 import org.dnsge.fbla.ebkmg.popup.NewEbookPopup;
 import org.dnsge.fbla.ebkmg.popup.NewStudentPopup;
+import org.dnsge.fbla.ebkmg.popup.PairStudentPopup;
 import org.dnsge.fbla.ebkmg.util.Pair;
 import org.dnsge.fbla.ebkmg.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -38,51 +40,32 @@ import java.util.concurrent.Callable;
 public final class MainPageController {
     // Menu bar stuff
     // todo: add more buttons/functionality to menubar
-    @FXML
-    private MenuBar menuBar;
-    @FXML
-    private MenuItem connectToDatabase, closeConnection;
+    @FXML private MenuBar menuBar;
+    @FXML private MenuItem connectToDatabase, closeConnection;
 
-    @FXML
-    private TabPane mainTabPane;
-    @FXML
-    private Tab studentTab;
-    @FXML
-    private Tab ebookTab;
+    @FXML private TabPane mainTabPane;
+    @FXML private Tab studentTab;
+    @FXML private Tab ebookTab;
 
     // Table related stuff
-    @FXML
-    private TableView<Student> studentTableView;
-    @FXML
-    private TableColumn<Student, String> lastNameColumn;
-    @FXML
-    private TableColumn<Student, String> firstNameColumn;
-    @FXML
-    private TableView<Ebook> ebookTableView;
-    @FXML
-    private TableColumn<Ebook, String> ebookCodeColumn;
-    @FXML
-    private TableColumn<Ebook, String> ebookRedemptionDateColumn;
+    @FXML private TableView<Student> studentTableView;
+    @FXML private TableColumn<Student, String> lastNameColumn;
+    @FXML private TableColumn<Student, String> firstNameColumn;
+    @FXML private TableView<Ebook> ebookTableView;
+    @FXML private TableColumn<Ebook, String> ebookCodeColumn;
+    @FXML private TableColumn<Ebook, String> ebookRedemptionDateColumn;
     // Right side of the screen input nodes
     // student
-    @FXML
-    private TextField firstNameField, lastNameField, studentIdField;
-    @FXML
-    private ChoiceBox<String> studentGradeDropdown;
-    @FXML
-    private Button updateStudentDataButton, cancelUpdateStudentButton, deleteRecordButton;
+    @FXML private TextField firstNameField, lastNameField, studentIdField;
+    @FXML private ChoiceBox<String> studentGradeDropdown;
+    @FXML private Button updateStudentDataButton, cancelUpdateStudentButton, deleteRecordButton;
     // ebook
-    @FXML
-    private TextField ebookNameField, ebookCodeField, redemptionDateField;
-    @FXML
-    private Button updateEbookDataButton, cancelUpdateEbookButton, viewStudentButton;
+    @FXML private TextField ebookNameField, ebookCodeField, redemptionDateField;
+    @FXML private Button updateEbookDataButton, cancelUpdateEbookButton, viewStudentButton, pairStudentButton;
     // Bottom toolbar stuff
-    @FXML
-    private ToolBar buttonsToolbar;
-    @FXML
-    private Button newRecordButton;
-    @FXML
-    private Button generateReportButton; // Todo: this
+    @FXML private ToolBar buttonsToolbar;
+    @FXML private Button newRecordButton;
+    @FXML private Button generateReportButton; // Todo: this
 
     private Student selectedStudent;
     private Ebook selectedEbook;
@@ -148,10 +131,6 @@ public final class MainPageController {
                         selectedStudent.loadFromMemento(preservedStudent);
                         loadTextFieldsFromStudent(selectedStudent);
                         AlertCreator.errorUser("You need to fill out each entry field!");
-//                        System.out.println(selectedStudent.getFirstName().trim().isEmpty());
-//                        System.out.println(selectedStudent.getLastName().trim().isEmpty());
-//                        System.out.println(selectedStudent.getGrade().trim().isEmpty());
-//                        System.out.println(selectedStudent.getStudentId().trim().isEmpty());
                         return;
                     }
 
@@ -219,12 +198,8 @@ public final class MainPageController {
             if (selectedEbookList.size() > 0) {
                 setDisableOnInteractionsEbook(false);
                 selectedEbook = selectedEbookList.get(0);
-                loadTextFieldsFromEbook(selectedEbook);
+                loadInteractionFieldsFromEbook(selectedEbook);
                 resetFieldsStyle();
-
-                if (selectedEbook.getOwner() == null) {
-                    viewStudentButton.setDisable(true);
-                }
             }
         });
 
@@ -252,7 +227,7 @@ public final class MainPageController {
 
                     } catch (SQLException e) {
                         selectedEbook.loadFromMemento(preservedEbook);
-                        loadTextFieldsFromEbook(selectedEbook);
+                        loadInteractionFieldsFromEbook(selectedEbook);
 
                         e.printStackTrace();
                         AlertCreator.unknownError();
@@ -286,6 +261,35 @@ public final class MainPageController {
             }
         });
 
+        pairStudentButton.setOnAction(event -> {
+            PairStudentPopup psp = new PairStudentPopup();
+            Pair<Student, Boolean> result = psp.showAndWait();
+            if (result.getR()) {
+                if (result.getL().getOwnedEbook() != null) {
+                    Ebook ebook = result.getL().getOwnedEbook();
+                    ebook.setAssignmentDate(null);
+                    try {
+                        connector.getEbookDao().update(ebook);
+                    } catch (SQLException e) {
+                        AlertCreator.errorUser("There was a problem removing the date of the previously paired E-book.");
+                        e.printStackTrace();
+                    }
+                }
+
+                selectedEbook.setAssignmentDate(new Date());
+                result.getL().setEbook(selectedEbook);
+                try {
+                    connector.getStudentDao().update(result.getL());
+                    connector.getEbookDao().update(selectedEbook);
+                    loadInteractionFieldsFromEbook(selectedEbook);
+                } catch (SQLException e) {
+                    AlertCreator.errorUser("There was a problem pairing that E-Book and Student");
+                    e.printStackTrace();
+                }
+            }
+            completeEbookTableRefresh();
+        });
+
     }
 
     /**
@@ -299,10 +303,15 @@ public final class MainPageController {
                     return;
                 }
             }
-
-
-            File databaseFile = Utils.openFilePickerDialog("Select Database", "L:/ebook_data/", menuBar.getScene().getWindow());
-            if (databaseFile == null) {
+            File databaseFile;
+            try {
+                databaseFile = Utils.openFilePickerDialog("Select Database", "L:/ebook_data/", menuBar.getScene().getWindow());
+                if (databaseFile == null) {
+                    return;
+                }
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                AlertCreator.errorUser("There was an issue opening the filepicker.");
                 return;
             }
 
@@ -358,6 +367,7 @@ public final class MainPageController {
 
                 closeConnection.setDisable(true);
                 studentTableView.setItems(FXCollections.observableArrayList());
+                ebookTableView.setItems(FXCollections.observableArrayList());
             } catch (IOException e1) {
                 e1.printStackTrace();
             }
@@ -415,6 +425,17 @@ public final class MainPageController {
         });
     }
 
+    private void completeEbookTableRefresh() {
+        List<Ebook> allEbooks = null;
+        try {
+            allEbooks = connector.getEbookDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
+        ebookTableView.refresh();
+    }
+
 
     /**
      * Creates the IChangeWrappers for the Nodes and sets up the combo box(es)
@@ -459,6 +480,7 @@ public final class MainPageController {
         updateEbookDataButton.setDisable(disabled);
         cancelUpdateEbookButton.setDisable(disabled);
         viewStudentButton.setDisable(disabled);
+        pairStudentButton.setDisable(disabled);
     }
 
     /**
@@ -519,11 +541,14 @@ public final class MainPageController {
      *
      * @param ebook Ebook to load from
      */
-    private void loadTextFieldsFromEbook(Ebook ebook) {
+    private void loadInteractionFieldsFromEbook(Ebook ebook) {
         ebookName.setValue(ebook.getName());
         ebookCode.setValue(ebook.getCode());
         redemptionDate.setValue(ebook.getAssignmentDateString());
         ebookWrapperHolder.updateAll();
+        if (ebook.getOwner() == null) {
+            viewStudentButton.setDisable(true);
+        }
     }
 
     /**

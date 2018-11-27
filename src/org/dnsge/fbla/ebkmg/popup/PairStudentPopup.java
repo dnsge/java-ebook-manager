@@ -22,6 +22,12 @@ import org.dnsge.fbla.ebkmg.util.Pair;
 import java.sql.SQLException;
 import java.util.List;
 
+/**
+ * Class that allows for the creation of a popup to select a student for pairing with an ebook
+ *
+ * @author Daniel Sage
+ * @version 0.1
+ */
 public class PairStudentPopup {
 
     private Stage myStage;

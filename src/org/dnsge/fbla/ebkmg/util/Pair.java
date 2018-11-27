@@ -1,5 +1,11 @@
 package org.dnsge.fbla.ebkmg.util;
 
+/**
+ * Holds two values togeather
+ *
+ * @param <L> Type of the left value
+ * @param <R> Type of the right value
+ */
 public class Pair<L, R> {
     private L l;
     private R r;

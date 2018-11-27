@@ -22,6 +22,12 @@ import org.dnsge.fbla.ebkmg.db.Student;
 import org.dnsge.fbla.ebkmg.util.Pair;
 
 
+/**
+ * Class that allows for the creation of popups for new Students
+ *
+ * @author Daniel Sage
+ * @version 0.1
+ */
 public class NewStudentPopup {
 
     private Stage myStage;

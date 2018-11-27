@@ -13,7 +13,7 @@ import java.util.Objects;
  * Represents a student in a SQLite database
  *
  * @author Daniel Sage
- * @version 0.3
+ * @version 0.4
  */
 @DatabaseTable(tableName = "students")
 public final class Student {
@@ -23,7 +23,6 @@ public final class Student {
     @DatabaseField private String lastName;
     @DatabaseField private String grade;
     @DatabaseField(unique = true) private String studentId;
-    @DatabaseField private Boolean hasEbook;
     @DatabaseField(unique = true) private String ebookCode;
 
     private Ebook ownedEbook;
@@ -46,22 +45,7 @@ public final class Student {
         this.lastName = lastName;
         this.grade = grade;
         this.studentId = studentId;
-        this.hasEbook = false;
         this.ebookCode = null;
-    }
-
-    /**
-     * Checks if an E-book code has already been used on another student
-     *
-     * @param code E-book code to check for
-     * @return {@code true} if used, {@code false} if not used
-     * @throws SQLException If there's an issue
-     */
-    public static Boolean codeUsed(String code, Student excluded) throws SQLException {
-        Dao<Student, String> dao = SQLiteConnector.getInstance().getStudentDao();
-        List<Student> allCodes = dao.queryBuilder().where().eq("ebookCode", code).query();
-        System.out.println("ALL CODES FOUND: " + allCodes.toString());
-        return allCodes.size() > 0 && allCodes.get(0).equals(excluded);
     }
 
     public static Student whoOwns(String code) throws SQLException {
@@ -171,7 +155,7 @@ public final class Student {
     }
 
     public Boolean hasEbook() {
-        return hasEbook;
+        return getOwnedEbook() != null;
     }
 
     public String getEbookCode() {
@@ -182,7 +166,6 @@ public final class Student {
         this.ebookCode = ebookCode;
         try {
             ownedEbook = Ebook.getOrCreate(ebookName, ebookCode);
-            hasEbook = true;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -191,30 +174,28 @@ public final class Student {
     public void setEbook(Ebook ebook) {
         ebookCode = ebook.getCode();
         ownedEbook = ebook;
-        hasEbook = true;
+    }
+
+    public void clearEbook() {
+        ebookCode = null;
+        ownedEbook = null;
     }
 
     public Ebook getOwnedEbook() {
-        if (hasEbook) {
-            if (ownedEbook != null) {
-                return ownedEbook;
-            } else {
+        if (ownedEbook != null) {
+            return ownedEbook;
+        } else {
+            if (ebookCode != null) {
                 try {
                     ownedEbook = Ebook.get(ebookCode);
                 } catch (SQLException e) {
                     e.printStackTrace();
+                    return null;
                 }
-
                 return ownedEbook;
             }
-
-        } else {
             return null;
         }
-    }
-
-    public void setHasEbook(Boolean hasEbook) {
-        this.hasEbook = hasEbook;
     }
 
     /**
@@ -265,14 +246,13 @@ public final class Student {
                 Objects.equals(lastName, student.lastName) &&
                 Objects.equals(grade, student.grade) &&
                 Objects.equals(studentId, student.studentId) &&
-                Objects.equals(hasEbook, student.hasEbook) &&
                 Objects.equals(ebookCode, student.ebookCode) &&
                 Objects.equals(ownedEbook, student.ownedEbook);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(firstName, lastName, grade, studentId, hasEbook, ebookCode, ownedEbook);
+        return Objects.hash(firstName, lastName, grade, studentId, ebookCode, ownedEbook);
     }
 
     public boolean filledOutProperly() {

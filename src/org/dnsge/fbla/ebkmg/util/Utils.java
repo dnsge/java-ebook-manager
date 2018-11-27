@@ -1,6 +1,5 @@
 package org.dnsge.fbla.ebkmg.util;
 
-import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
@@ -11,18 +10,18 @@ import java.io.File;
  * Util class with static methods for simpler code
  *
  * @author Daniel Sage
- * @version 0.1
+ * @version 0.2
  */
 public final class Utils {
 
     /**
-     * Gets the Window/Stage of an ActionEvent
+     * Gets the Window/Stage of a Node
      *
-     * @param event Action event to get Window source
-     * @return Window of the event source
+     * @param node Node to get Window source from
+     * @return Window of the node
      */
-    public static Window getWindowFromEvent(ActionEvent event) {
-        return ((Node)event.getSource()).getScene().getWindow();
+    public static Window getWindowFromNode(Node node) {
+        return node.getScene().getWindow();
     }
 
     /**
@@ -51,6 +50,20 @@ public final class Utils {
      */
     public static File openFilePickerDialog(String dialogTitle, String initialDirPath, Window ownerWindow) {
         return openFilePickerDialog(dialogTitle, new File(initialDirPath), ownerWindow);
+    }
+
+    public static File openSavePickerDialog(String dialogTitle, File initialDirPath, Window ownerWindow, FileChooser.ExtensionFilter extensionFilter) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(dialogTitle);
+        fileChooser.setInitialDirectory(initialDirPath);
+        if (extensionFilter != null) {
+            fileChooser.getExtensionFilters().add(extensionFilter);
+        }
+        return fileChooser.showSaveDialog(ownerWindow);
+    }
+
+    public static File openSavePickerDialog(String dialogTitle, String initialDirPath, Window ownerWindow, FileChooser.ExtensionFilter extensionFilter) {
+        return openSavePickerDialog(dialogTitle, new File(initialDirPath), ownerWindow, extensionFilter);
     }
 
 }

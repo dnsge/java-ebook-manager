@@ -6,16 +6,16 @@ import com.j256.ormlite.table.TableUtils;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.input.MouseEvent;
+import javafx.stage.FileChooser;
 import org.dnsge.fbla.ebkmg.db.Ebook;
 import org.dnsge.fbla.ebkmg.db.SQLiteConnector;
 import org.dnsge.fbla.ebkmg.db.Student;
 import org.dnsge.fbla.ebkmg.extensions.ChangeWrapperHolder;
 import org.dnsge.fbla.ebkmg.extensions.ChoiceBoxWrapper;
 import org.dnsge.fbla.ebkmg.extensions.TextFieldWrapper;
+import org.dnsge.fbla.ebkmg.pdf.ReportGenerator;
 import org.dnsge.fbla.ebkmg.popup.AlertCreator;
 import org.dnsge.fbla.ebkmg.popup.NewEbookPopup;
 import org.dnsge.fbla.ebkmg.popup.NewStudentPopup;
@@ -35,13 +35,13 @@ import java.util.concurrent.Callable;
  * Controller for the main JavaFX view
  *
  * @author Daniel Sage
- * @version 0.3
+ * @version 0.5
  */
 public final class MainPageController {
     // Menu bar stuff
     // todo: add more buttons/functionality to menubar
     @FXML private MenuBar menuBar;
-    @FXML private MenuItem connectToDatabase, closeConnection;
+    @FXML private MenuItem newDatabase, connectToDatabase, closeConnection;
 
     @FXML private TabPane mainTabPane;
     @FXML private Tab studentTab;
@@ -58,7 +58,9 @@ public final class MainPageController {
     // student
     @FXML private TextField firstNameField, lastNameField, studentIdField;
     @FXML private ChoiceBox<String> studentGradeDropdown;
-    @FXML private Button updateStudentDataButton, cancelUpdateStudentButton, deleteRecordButton;
+    @FXML private Button updateStudentDataButton, cancelUpdateStudentButton, deleteStudentRecordButton;
+    @FXML private Button viewEbookButton, unpairEbookButton;
+    @FXML private CheckBox hasEbookCheckbox;
     // ebook
     @FXML private TextField ebookNameField, ebookCodeField, redemptionDateField;
     @FXML private Button updateEbookDataButton, cancelUpdateEbookButton, viewStudentButton, pairStudentButton;
@@ -78,8 +80,15 @@ public final class MainPageController {
     private ChangeWrapperHolder studentWrapperHolder;
     private ChangeWrapperHolder ebookWrapperHolder;
 
+    private final static File HOME_DIRECTORY = Main.HOME_DIRECTORY;
+    private final static File EBOOK_DIRECTORY = Main.EBOOK_DIRECTORY;
+    private final static File REPORTS_DIRECTORY = Main.REPORTS_DIRECTORY;
+
+
     /**
      * Called by JavaFX once all FXML fields/nodes have been created/registered
+     *
+     * Creates listeners, registers datasources, etc.
      */
     @FXML
     public void initialize() {
@@ -92,14 +101,44 @@ public final class MainPageController {
         setDisableOnInteractionsStudent(true);
         setDisableOnInteractionsEbook(true);
         buttonsToolbar.setDisable(true);
+
+        studentTab.setOnSelectionChanged(e -> {
+            if (selectedStudent != null) {
+                loadInteractionFieldsFromStudent(selectedStudent);
+            }
+        });
+
+        ebookTab.setOnSelectionChanged(e -> {
+            if (selectedEbook != null) {
+                loadInteractionFieldsFromEbook(selectedEbook);
+            }
+        });
+
+
     }
 
+    /**
+     * Fetches up-to-date objects and refreshes the selected student fields
+     */
     private void reloadTextBoxesStudent() {
         ObservableList<Student> selectedStudentList = studentTableView.getSelectionModel().getSelectedItems();
         if (selectedStudentList.size() > 0) {
             setDisableOnInteractionsStudent(false);
             selectedStudent = selectedStudentList.get(0);
-            loadTextFieldsFromStudent(selectedStudent);
+            loadInteractionFieldsFromStudent(selectedStudent);
+            resetFieldsStyle();
+        }
+    }
+
+    /**
+     * Fetches up-to-date objects and refreshes the selected ebook fields
+     */
+    private void reloadTextBoxesEbook() {
+        ObservableList<Ebook> selectedEbookList = ebookTableView.getSelectionModel().getSelectedItems();
+        if (selectedEbookList.size() > 0) {
+            setDisableOnInteractionsStudent(false);
+            selectedEbook = selectedEbookList.get(0);
+            loadInteractionFieldsFromEbook(selectedEbook);
             resetFieldsStyle();
         }
     }
@@ -112,9 +151,7 @@ public final class MainPageController {
         lastNameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getLastName()));
         firstNameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFirstName()));
 
-        studentTableView.setOnMouseClicked((MouseEvent event) -> {
-            reloadTextBoxesStudent();
-        });
+        studentTableView.setOnMouseClicked(event -> reloadTextBoxesStudent());
 
         updateStudentDataButton.setOnAction(event -> {
             ObservableList<Student> selectedStudentList = studentTableView.getSelectionModel().getSelectedItems();
@@ -129,7 +166,7 @@ public final class MainPageController {
 
                     if (!selectedStudent.filledOutProperly()) {
                         selectedStudent.loadFromMemento(preservedStudent);
-                        loadTextFieldsFromStudent(selectedStudent);
+                        loadInteractionFieldsFromStudent(selectedStudent);
                         AlertCreator.errorUser("You need to fill out each entry field!");
                         return;
                     }
@@ -147,7 +184,7 @@ public final class MainPageController {
 
                     } catch (SQLException e) {
                         selectedStudent.loadFromMemento(preservedStudent);
-                        loadTextFieldsFromStudent(selectedStudent);
+                        loadInteractionFieldsFromStudent(selectedStudent);
 
                         e.printStackTrace();
                         AlertCreator.unknownError();
@@ -155,8 +192,8 @@ public final class MainPageController {
                 } else {
                     AlertCreator.errorUser("A Student with that Student ID already exists!");
                 }
+                refreshEverything();
             }
-            studentTableView.refresh();
         });
 
         cancelUpdateStudentButton.setOnAction(event -> {
@@ -168,9 +205,15 @@ public final class MainPageController {
             finishStudentChanges();
         });
 
-        deleteRecordButton.setOnAction(event -> {
+        deleteStudentRecordButton.setOnAction(event -> {
             if (AlertCreator.askYesOrNo("Are you sure you want to delete this record?")) {
                 try {
+                    if (selectedStudent.getOwnedEbook() != null) {
+                        Ebook ebook = selectedStudent.getOwnedEbook();
+                        ebook.setAssignmentDate(null);
+                        connector.getEbookDao().update(ebook);
+                    }
+
                     connector.getStudentDao().delete(selectedStudent);
                     List<Student> allStudents = connector.getStudentDao().queryForAll();
                     studentTableView.setItems(FXCollections.observableArrayList(allStudents));
@@ -180,7 +223,31 @@ public final class MainPageController {
                     e.printStackTrace();
                     AlertCreator.unknownError();
                 }
+                refreshEverything();
             }
+        });
+
+        viewEbookButton.setOnAction(event -> {
+            try {
+                Ebook ebook = selectedStudent.getOwnedEbook();
+                if (ebook != null) {
+                    mainTabPane.getSelectionModel().select(ebookTab);
+                    ebookTableView.getSelectionModel().select(ebook);
+                    reloadTextBoxesEbook();
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
+            }
+        });
+
+        unpairEbookButton.setOnAction(event -> {
+            selectedStudent.clearEbook();
+            try {
+                connector.getStudentDao().update(selectedStudent);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            refreshEverything();
         });
 
     }
@@ -287,7 +354,7 @@ public final class MainPageController {
                     e.printStackTrace();
                 }
             }
-            completeEbookTableRefresh();
+            refreshEverything();
         });
 
     }
@@ -295,9 +362,60 @@ public final class MainPageController {
     /**
      * Registers event listeners for things related to the menu bar
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void registerMenuBarInteractions() {
+        newDatabase.setOnAction(event -> {
+            if (studentWrapperHolder.anyChanged()) {
+                if (!AlertCreator.askYesOrNo("You have unsaved changes, are you sure you want to close your previous connection and open a new one?")) {
+                    return;
+                }
+            }
+
+            File newDatabaseFile;
+            try {
+                newDatabaseFile = Utils.openSavePickerDialog("New Database", EBOOK_DIRECTORY, Utils.getWindowFromNode(menuBar),
+                        new FileChooser.ExtensionFilter("Database files (*.db)", ".db"));
+                if (newDatabaseFile == null) {
+                    return;
+                }
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                AlertCreator.errorUser("There was an issue opening the filepicker.");
+                return;
+            }
+
+            try {
+                boolean isNewFile = newDatabaseFile.createNewFile();
+                if (!isNewFile) {
+                    newDatabaseFile.delete();
+                    newDatabaseFile.createNewFile();
+                }
+
+                // Connect database
+                connector.connect(newDatabaseFile.getAbsolutePath());
+                ConnectionSource connectionSource = connector.getConnectionSource();
+
+                // Create database tables if they don't exist
+                TableUtils.createTableIfNotExists(connectionSource, Student.class);
+                TableUtils.createTableIfNotExists(connectionSource, Ebook.class);
+
+                // Get all students
+                List<Student> allStudents = connector.getStudentDao().queryForAll();
+                List<Ebook> allEbooks = connector.getEbookDao().queryForAll();
+
+                // Generate list and set the items
+                studentTableView.setItems(FXCollections.observableArrayList(allStudents));
+                ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
+                closeConnection.setDisable(false);
+
+            } catch (IOException | SQLException e) {
+                e.printStackTrace();
+                AlertCreator.errorUser("There was an issue creating that file.");
+            }
+        });
+
         // Bind 'Connect to Database' menu button
-        connectToDatabase.setOnAction((ActionEvent event) -> {
+        connectToDatabase.setOnAction(event -> {
             if (studentWrapperHolder.anyChanged()) {
                 if (!AlertCreator.askYesOrNo("You have unsaved changes, are you sure you want to close your previous connection and open a new one?")) {
                     return;
@@ -305,7 +423,7 @@ public final class MainPageController {
             }
             File databaseFile;
             try {
-                databaseFile = Utils.openFilePickerDialog("Select Database", "L:/ebook_data/", menuBar.getScene().getWindow());
+                databaseFile = Utils.openFilePickerDialog("Select Database", EBOOK_DIRECTORY, Utils.getWindowFromNode(menuBar));
                 if (databaseFile == null) {
                     return;
                 }
@@ -377,6 +495,7 @@ public final class MainPageController {
     /**
      * Registers event listeners for things related to the toolbar
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void registerToolBarInteractions() {
         // Set listener for when database connection state is changed
         // If connected, enable bottom toolbar, else disable it
@@ -391,9 +510,7 @@ public final class MainPageController {
                         TransactionManager.callInTransaction(connector.getConnectionSource(), (Callable<Void>) () -> {
                             connector.getStudentDao().create(result.getL());
 
-                            List<Student> allStudents = connector.getStudentDao().queryForAll();
-                            studentTableView.setItems(FXCollections.observableArrayList(allStudents));
-                            studentTableView.refresh();
+                            refreshEverything();
 
                             return null;
                         });
@@ -410,9 +527,7 @@ public final class MainPageController {
                         TransactionManager.callInTransaction(connector.getConnectionSource(), (Callable<Void>) () -> {
                             connector.getEbookDao().create(result.getL());
 
-                            List<Ebook> allEbooks = connector.getEbookDao().queryForAll();
-                            ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
-                            ebookTableView.refresh();
+                            refreshEverything();
 
                             return null;
                         });
@@ -423,8 +538,34 @@ public final class MainPageController {
                 }
             }
         });
+
+        generateReportButton.setOnAction(event -> {
+            File saveFile = Utils.openSavePickerDialog("Select Report Location", REPORTS_DIRECTORY,
+                    Utils.getWindowFromNode(generateReportButton), new FileChooser.ExtensionFilter("PDF files (*.pdf)", ".pdf"));
+
+            if (saveFile == null) {
+                return;
+            }
+
+            try {
+                boolean isNew = saveFile.createNewFile();
+                if (!isNew) {
+                    saveFile.delete();
+                    saveFile.createNewFile();
+                }
+
+                ReportGenerator.generateReport(saveFile, connector.getStudentDao().queryForAll());
+                AlertCreator.infoUser(String.format("Your report was successfully created in %s", saveFile.getAbsolutePath()));
+            } catch (IOException | SQLException e) {
+                e.printStackTrace();
+                AlertCreator.errorUser("There was an issue creating your report.");
+            }
+        });
     }
 
+    /**
+     * Refreshes the ebooks table by fetching up-to-date objects
+     */
     private void completeEbookTableRefresh() {
         List<Ebook> allEbooks = null;
         try {
@@ -434,6 +575,48 @@ public final class MainPageController {
         }
         ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
         ebookTableView.refresh();
+    }
+
+    /**
+     * Refreshes the students table by fetching up-to-date objects
+     */
+    private void completeStudentTableRefresh() {
+        List<Student> allStudents = null;
+        try {
+            allStudents = connector.getStudentDao().queryForAll();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        studentTableView.setItems(FXCollections.observableArrayList(allStudents));
+        studentTableView.refresh();
+    }
+
+    /**
+     * Refreshes every table element and input field with the current data
+     * from the database file
+     */
+    private void refreshEverything() {
+        completeStudentTableRefresh();
+        completeEbookTableRefresh();
+        studentTableView.refresh();
+        ebookTableView.refresh();
+
+        if (selectedStudent != null) {
+            loadInteractionFieldsFromStudent(selectedStudent);
+        } else {
+            studentWrapperHolder.clearAll();
+            studentWrapperHolder.clearAllStyle();
+        }
+
+        if (selectedEbook != null) {
+            loadInteractionFieldsFromEbook(selectedEbook);
+        } else {
+            ebookWrapperHolder.clearAll();
+            ebookWrapperHolder.clearAllStyle();
+        }
+
+        studentTableView.getSelectionModel().clearSelection();
+        ebookTableView.getSelectionModel().clearSelection();
     }
 
 
@@ -466,7 +649,9 @@ public final class MainPageController {
         studentWrapperHolder.setAllDisabled(disabled);
         updateStudentDataButton.setDisable(disabled);
         cancelUpdateStudentButton.setDisable(disabled);
-        deleteRecordButton.setDisable(disabled);
+        deleteStudentRecordButton.setDisable(disabled);
+        viewEbookButton.setDisable(disabled);
+        unpairEbookButton.setDisable(disabled);
     }
 
     /**
@@ -528,12 +713,15 @@ public final class MainPageController {
      *
      * @param stu Student to load from
      */
-    private void loadTextFieldsFromStudent(Student stu) {
+    private void loadInteractionFieldsFromStudent(Student stu) {
         firstName.setValue(stu.getFirstName());
         lastName.setValue(stu.getLastName());
         studentGrade.setValue(stu.getGrade());
         studentId.setValue(stu.getStudentId());
         studentWrapperHolder.updateAll();
+        hasEbookCheckbox.setSelected(stu.hasEbook());
+        viewEbookButton.setDisable(!stu.hasEbook());
+        unpairEbookButton.setDisable(!stu.hasEbook());
     }
 
     /**

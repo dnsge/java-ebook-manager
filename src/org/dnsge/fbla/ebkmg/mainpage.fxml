@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.collections.FXCollections?>
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
@@ -11,6 +11,8 @@
       <menus>
         <Menu mnemonicParsing="false" text="File" visible="true">
           <items>
+            <MenuItem mnemonicParsing="false" text="New Database" fx:id="newDatabase" />
+            <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" text="Connect to Database" fx:id="connectToDatabase" />
             <MenuItem disable="true" mnemonicParsing="false" text="Close Connection" fx:id="closeConnection" />
           </items>
@@ -44,13 +46,13 @@
                         <TableColumn maxWidth="5000.0" minWidth="0.0" prefWidth="128.0" resizable="false" text="First Name" fx:id="firstNameColumn" />
                       </columns>
                     </TableView>
-                    <GridPane alignment="CENTER_LEFT" disable="false" gridLinesVisible="false" hgap="5.0" maxHeight="-Infinity" prefHeight="203.0" prefWidth="371.0" vgap="10.0" HBox.hgrow="ALWAYS" HBox.margin="$x1">
+                    <GridPane alignment="CENTER_LEFT" disable="false" gridLinesVisible="false" hgap="5.0" maxHeight="-Infinity" prefHeight="232.0" prefWidth="371.0" vgap="10.0" HBox.hgrow="ALWAYS" HBox.margin="$x1">
                       <children>
                         <Label text="Student First Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
                         <TextField fx:id="firstNameField" disable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                         <Label text="Student Last Name" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                         <TextField fx:id="lastNameField" disable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                        <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
                           <children>
                             <Button fx:id="cancelUpdateStudentButton" cancelButton="true" contentDisplay="CENTER" disable="false" mnemonicParsing="false" text="Cancel" />
                             <Button fx:id="updateStudentDataButton" cancelButton="false" defaultButton="true" disable="false" mnemonicParsing="false" text="Update Information" />
@@ -58,7 +60,7 @@
                         </HBox>
                         <Label text="Student ID" GridPane.columnIndex="0" GridPane.rowIndex="3" />
                         <TextField fx:id="studentIdField" disable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Button fx:id="deleteRecordButton" disable="false" mnemonicParsing="false" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                        <Button fx:id="deleteStudentRecordButton" disable="false" mnemonicParsing="false" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
                         <Label text="Student Grade" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                         <ChoiceBox fx:id="studentGradeDropdown" disable="false" prefWidth="254.0" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
                           <items>
@@ -69,6 +71,18 @@
                             </FXCollections>
                           </items>
                         </ChoiceBox>
+                        <Label text="Paired E-Book" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                        <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.valignment="CENTER">
+                          <children>
+                            <CheckBox fx:id="hasEbookCheckbox" disable="true" mnemonicParsing="false" text="Paired" />
+                            <Button fx:id="viewEbookButton" mnemonicParsing="false" prefWidth="101.0" text="View E-Book" HBox.hgrow="ALWAYS" />
+                            <Button fx:id="unpairEbookButton" mnemonicParsing="false" prefWidth="77.0" text="Unpair" HBox.hgrow="ALWAYS">
+                              <HBox.margin>
+                                <Insets />
+                              </HBox.margin>
+                            </Button>
+                          </children>
+                        </HBox>
                       </children>
                       <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" maxWidth="176.0" minWidth="10.0" prefWidth="100.0" />
@@ -82,6 +96,7 @@
                         <RowConstraints maxHeight="194.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
                         <RowConstraints maxHeight="192.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
                         <RowConstraints maxHeight="192.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
+                        <RowConstraints maxHeight="216.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
                         <RowConstraints maxHeight="216.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
                         <RowConstraints maxHeight="216.0" minHeight="10.0" prefHeight="20.0" vgrow="NEVER" />
                       </rowConstraints>

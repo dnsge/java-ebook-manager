@@ -7,7 +7,7 @@ import javafx.scene.control.ButtonType;
  * Class with {@code static} methods to notify the user with alerts
  *
  * @author Daniel Sage
- * @version 0.1
+ * @version 0.2
  */
 public final class AlertCreator {
 
@@ -41,6 +41,12 @@ public final class AlertCreator {
         alert.setTitle("Confirm");
         alert.showAndWait();
         return alert.getResult() == ButtonType.YES;
+    }
+
+    public static void infoUser(String prompt) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION, prompt);
+        alert.setTitle("Information");
+        alert.showAndWait();
     }
 
 }

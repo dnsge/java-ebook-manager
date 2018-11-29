@@ -66,7 +66,7 @@ public class PairStudentPopup {
         tableView.getColumns().add(lastNameColumn);
         tableView.getColumns().add(firstNameColumn);
 
-        double halfWidth = (375f-22) / 2;
+        double halfWidth = (370f-22) / 2;
         lastNameColumn.setPrefWidth(halfWidth);
         firstNameColumn.setPrefWidth(halfWidth);
 

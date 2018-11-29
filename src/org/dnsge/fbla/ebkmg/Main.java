@@ -7,14 +7,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import org.dnsge.fbla.ebkmg.db.SQLiteConnector;
-import org.dnsge.fbla.ebkmg.popup.AlertCreator;
+import org.dnsge.fbla.ebkmg.util.ErrorLog;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Main class & program entry point
@@ -30,8 +27,8 @@ public class Main extends Application {
     final static File HOME_DIRECTORY = new File(System.getProperty("user.home"));
     final static File EBOOK_DIRECTORY = new File(HOME_DIRECTORY, "EbookManagerData");
     final static File REPORTS_DIRECTORY = new File(EBOOK_DIRECTORY, "reports");
-    private final static File LOGS_DIRECTORY = new File(EBOOK_DIRECTORY, "logs");
-    private final static SimpleDateFormat ERROR_LOG_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd kk.mm.ss");
+    public final static File LOGS_DIRECTORY = new File(EBOOK_DIRECTORY, "logs");
+    public final static SimpleDateFormat ERROR_LOG_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd kk.mm.ss");
 
     public static void main(String[] args) {
         launch(args);
@@ -55,7 +52,9 @@ public class Main extends Application {
         primaryStage.setTitle("Main Page");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
-        primaryStage.setResizable(false);
+        primaryStage.setResizable(true);
+        primaryStage.setMinWidth(700);
+        primaryStage.setMinHeight(400);
 
         // Intercept all close requests
         primaryStage.setOnCloseRequest(event -> {
@@ -71,41 +70,23 @@ public class Main extends Application {
         });
     }
 
+    /**
+     * Handles exceptions that aren't handled in this jfx program
+     * <p>
+     * Creates a log file and shows a popup before exiting the applciation
+     *
+     * @param t Thread the exception occured in
+     * @param exception {@code Throwalbe} that was thrown
+     */
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private static void showError(Thread t, Throwable exception) {
         if (Platform.isFxApplicationThread()) {
-            Date errorDate = new Date();
-            File logFile = new File(LOGS_DIRECTORY, String.format("error@%s.log", ERROR_LOG_DATE_FORMAT.format(errorDate)));
-            if (logFile.exists()) {
-                logFile.delete();
-            }
-            try {
-                logFile.createNewFile();
-                writeErrorLogFile(logFile, exception, errorDate);
-            } catch (IOException e) {
-                e.printStackTrace();
-                AlertCreator.errorUser("An unknown error occurred. Funnily enough, another error occured while creating the error log."
-                        + "\nInitial error: " + exception.getMessage()
-                        + "\nLog-creation error: " + e.getMessage());
-                return;
-            }
-            AlertCreator.errorUser("An unknown error occured. Detailed information can be found in " + logFile.getAbsolutePath());
+            File logFile = ErrorLog.createErrorLog(exception);
+            ErrorLog.showLogCreationPopup(logFile);
             Platform.exit();
-
         } else {
             System.err.println("An unexpected error occurred in " + t);
         }
-    }
-
-    private static void writeErrorLogFile(File outputFile, Throwable exception, Date errorDate) throws FileNotFoundException {
-        PrintStream ps = new PrintStream(outputFile);
-        ps.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ ");
-        ps.println("┃ EBook Manager Error Log ┃ ");
-        ps.println("┗━━━━━━━━━━━━━━━━━━━━━━━━━┛ ");
-        ps.println(String.format("E-Book manager version %s @ %s", VERSION ,ERROR_LOG_DATE_FORMAT.format(errorDate)));
-        ps.println("Detailed exception stack trace below: \n");
-        exception.printStackTrace(ps);
-        ps.close();
     }
 
 }

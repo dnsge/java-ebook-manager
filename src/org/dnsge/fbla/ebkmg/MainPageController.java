@@ -16,10 +16,8 @@ import org.dnsge.fbla.ebkmg.extensions.ChangeWrapperHolder;
 import org.dnsge.fbla.ebkmg.extensions.ChoiceBoxWrapper;
 import org.dnsge.fbla.ebkmg.extensions.TextFieldWrapper;
 import org.dnsge.fbla.ebkmg.pdf.ReportGenerator;
-import org.dnsge.fbla.ebkmg.popup.AlertCreator;
-import org.dnsge.fbla.ebkmg.popup.NewEbookPopup;
-import org.dnsge.fbla.ebkmg.popup.NewStudentPopup;
-import org.dnsge.fbla.ebkmg.popup.PairStudentPopup;
+import org.dnsge.fbla.ebkmg.popup.*;
+import org.dnsge.fbla.ebkmg.util.ErrorLog;
 import org.dnsge.fbla.ebkmg.util.Pair;
 import org.dnsge.fbla.ebkmg.util.Utils;
 
@@ -41,7 +39,7 @@ public final class MainPageController {
     // Menu bar stuff
     // todo: add more buttons/functionality to menubar
     @FXML private MenuBar menuBar;
-    @FXML private MenuItem newDatabase, connectToDatabase, closeConnection;
+    @FXML private MenuItem newDatabase, connectToDatabase, closeConnection, deleteMenuItem, aboutMenuItem, licenseMenuItem;
 
     @FXML private TabPane mainTabPane;
     @FXML private Tab studentTab;
@@ -63,7 +61,8 @@ public final class MainPageController {
     @FXML private CheckBox hasEbookCheckbox;
     // ebook
     @FXML private TextField ebookNameField, ebookCodeField, redemptionDateField;
-    @FXML private Button updateEbookDataButton, cancelUpdateEbookButton, viewStudentButton, pairStudentButton;
+    @FXML private Button updateEbookDataButton, cancelUpdateEbookButton, deleteEbookRecordButton;
+    @FXML private Button viewStudentButton, pairStudentButton;
     // Bottom toolbar stuff
     @FXML private ToolBar buttonsToolbar;
     @FXML private Button newRecordButton;
@@ -187,7 +186,7 @@ public final class MainPageController {
                         loadInteractionFieldsFromStudent(selectedStudent);
 
                         e.printStackTrace();
-                        AlertCreator.unknownError();
+                        ErrorLog.newErrorLogWithPopup(e);
                     }
                 } else {
                     AlertCreator.errorUser("A Student with that Student ID already exists!");
@@ -215,13 +214,11 @@ public final class MainPageController {
                     }
 
                     connector.getStudentDao().delete(selectedStudent);
-                    List<Student> allStudents = connector.getStudentDao().queryForAll();
-                    studentTableView.setItems(FXCollections.observableArrayList(allStudents));
-                    studentTableView.refresh();
+                    refreshEverything();
                     finishStudentChanges();
                 } catch (SQLException e) {
                     e.printStackTrace();
-                    AlertCreator.unknownError();
+                    ErrorLog.newErrorLogWithPopup(e);
                 }
                 refreshEverything();
             }
@@ -297,7 +294,7 @@ public final class MainPageController {
                         loadInteractionFieldsFromEbook(selectedEbook);
 
                         e.printStackTrace();
-                        AlertCreator.unknownError();
+                        ErrorLog.newErrorLogWithPopup(e);
                     }
                 } else {
                     AlertCreator.errorUser("An E-Book with that code already exists!");
@@ -355,6 +352,19 @@ public final class MainPageController {
                 }
             }
             refreshEverything();
+        });
+
+        deleteEbookRecordButton.setOnAction(event -> {
+            if (AlertCreator.askYesOrNo("Are you sure you want to delete this record?")) {
+                 try {
+                     connector.getEbookDao().delete(selectedEbook);
+                     refreshEverything();
+                     finishEbookChanges();
+                 } catch (SQLException e) {
+                     e.printStackTrace();
+                     ErrorLog.newErrorLogWithPopup(e);
+                 }
+            }
         });
 
     }
@@ -490,6 +500,40 @@ public final class MainPageController {
                 e1.printStackTrace();
             }
         });
+
+        deleteMenuItem.setOnAction(e -> {
+            if (mainTabPane.getSelectionModel().getSelectedIndex() == 0) { // student tab
+                if (selectedStudent != null) {
+                    deleteStudentRecordButton.getOnAction().handle(e);
+                    return;
+                }
+            } else {
+                if (selectedEbook != null) {
+                    deleteEbookRecordButton.getOnAction().handle(e);
+                    return;
+                }
+            }
+            AlertCreator.infoUser("There is nothing to delete.");
+        });
+
+        aboutMenuItem.setOnAction(e -> {
+            BasicPopup aboutPopup = new BasicPopup(400, 175, "About",
+                         "This is a Java program designed by Daniel Sage (github.com/dnsge) " +
+                         "in 2018 for the FBLA Coding & Programming event.\n\n" +
+                         "It uses a SQLite database and was written using the JavaFX library.");
+
+            aboutPopup.showAndWait();
+        });
+
+        licenseMenuItem.setOnAction(e -> {
+            BasicPopup licensePopup = new BasicPopup(350, 150, "License",
+                    "GNU GENERAL PUBLIC LICENSE\n" +
+                            "Version 3, 29 June 2007\n" +
+                            "\n" +
+                            "The complete license can be found at https://www.gnu.org/licenses/gpl-3.0.en.html");
+
+            licensePopup.showAndWait();
+        });
     }
 
     /**
@@ -516,7 +560,7 @@ public final class MainPageController {
                         });
                     } catch (SQLException e) {
                         e.printStackTrace();
-                        AlertCreator.unknownError();
+                        ErrorLog.newErrorLogWithPopup(e);
                     }
                 }
             } else {
@@ -533,7 +577,7 @@ public final class MainPageController {
                         });
                     } catch (SQLException e) {
                         e.printStackTrace();
-                        AlertCreator.unknownError();
+                        ErrorLog.newErrorLogWithPopup(e);
                     }
                 }
             }
@@ -666,6 +710,7 @@ public final class MainPageController {
         cancelUpdateEbookButton.setDisable(disabled);
         viewStudentButton.setDisable(disabled);
         pairStudentButton.setDisable(disabled);
+        deleteEbookRecordButton.setDisable(disabled);
     }
 
     /**
@@ -695,6 +740,8 @@ public final class MainPageController {
         studentWrapperHolder.clearAll();
         setDisableOnInteractionsStudent(true);
         studentTableView.getSelectionModel().clearSelection();
+        hasEbookCheckbox.setSelected(false);
+        selectedStudent = null;
     }
 
     /**
@@ -706,6 +753,7 @@ public final class MainPageController {
         ebookWrapperHolder.clearAll();
         setDisableOnInteractionsEbook(true);
         ebookTableView.getSelectionModel().clearSelection();
+        selectedEbook = null;
     }
 
     /**

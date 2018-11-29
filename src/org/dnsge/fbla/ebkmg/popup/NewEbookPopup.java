@@ -40,7 +40,7 @@ public class NewEbookPopup {
         root.setPadding(new Insets(5));
 
         GridPane mainGrid = new GridPane();
-        mainGrid.setPrefSize(300, 175);
+        mainGrid.setPrefSize(300, 150);
         GridPane.setHgrow(mainGrid, Priority.ALWAYS);
         GridPane.setVgrow(mainGrid, Priority.ALWAYS);
         GridPane.setMargin(mainGrid, new Insets(5));

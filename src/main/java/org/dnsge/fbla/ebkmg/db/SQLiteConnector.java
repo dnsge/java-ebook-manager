@@ -118,6 +118,12 @@ public final class SQLiteConnector {
         return studentDao;
     }
 
+    /**
+     * Gets the current active {@code Ebook} DAO
+     *
+     * @return Active {@code Ebook} DAO
+     * @see Dao
+     */
     public Dao<Ebook, String> getEbookDao() {
         return ebookDao;
     }

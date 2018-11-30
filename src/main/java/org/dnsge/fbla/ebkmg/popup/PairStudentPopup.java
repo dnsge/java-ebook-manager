@@ -101,9 +101,7 @@ public class PairStudentPopup {
         });
 
 
-        tableView.setOnMouseClicked(event -> {
-            updateTableState();
-        });
+        tableView.setOnMouseClicked(event -> updateTableState());
         updateTableState();
         // Grid and Root setup
 
@@ -121,6 +119,9 @@ public class PairStudentPopup {
         myStage.setResizable(false);
     }
 
+    /**
+     * Updates the selectButton's enabled state when the table is pressed
+     */
     private void updateTableState() {
         ObservableList<Student> selectedStudentList = tableView.getSelectionModel().getSelectedItems();
         int size = selectedStudentList.size();

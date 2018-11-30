@@ -16,6 +16,14 @@ public class BasicPopup {
 
     private Stage myStage;
 
+    /**
+     * BasicPopup basic constructor
+     *
+     * @param width Popup width
+     * @param height Popup height
+     * @param title Popup title & text-header
+     * @param text Popup text
+     */
     public BasicPopup(int width, int height, String title, String text) {
         AnchorPane root = new AnchorPane();
         root.setPrefSize(width, height);

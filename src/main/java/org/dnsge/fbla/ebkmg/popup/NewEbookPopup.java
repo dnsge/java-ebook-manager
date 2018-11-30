@@ -104,14 +104,12 @@ public class NewEbookPopup {
             }
         });
 
-        cancelButton.setOnAction(e -> {
-            myStage.close();
-        });
+        cancelButton.setOnAction(e -> myStage.close());
 
         root.setPadding(new Insets(5));
 
     }
-    //todo: determine if i want to trim values
+
     private boolean filledOutProperly() {
         return !nameField.getText().trim().isEmpty() &&
                 !redemptionField.getText().trim().isEmpty();

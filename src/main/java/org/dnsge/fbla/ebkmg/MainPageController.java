@@ -37,10 +37,10 @@ import java.util.concurrent.Callable;
  */
 public final class MainPageController {
     // Menu bar stuff
-    // todo: add more buttons/functionality to menubar
     @FXML private MenuBar menuBar;
     @FXML private MenuItem newDatabase, connectToDatabase, closeConnection, deleteMenuItem, aboutMenuItem, licenseMenuItem;
 
+    // Tab stuff
     @FXML private TabPane mainTabPane;
     @FXML private Tab studentTab;
     @FXML private Tab ebookTab;
@@ -52,21 +52,20 @@ public final class MainPageController {
     @FXML private TableView<Ebook> ebookTableView;
     @FXML private TableColumn<Ebook, String> ebookCodeColumn;
     @FXML private TableColumn<Ebook, String> ebookRedemptionDateColumn;
-    // Right side of the screen input nodes
-    // student
+    // Student interaction fields
     @FXML private TextField firstNameField, lastNameField, studentIdField;
     @FXML private ChoiceBox<String> studentGradeDropdown;
     @FXML private Button updateStudentDataButton, cancelUpdateStudentButton, deleteStudentRecordButton;
     @FXML private Button viewEbookButton, unpairEbookButton;
     @FXML private CheckBox hasEbookCheckbox;
-    // ebook
+    // Ebook interaction fields
     @FXML private TextField ebookNameField, ebookCodeField, redemptionDateField;
     @FXML private Button updateEbookDataButton, cancelUpdateEbookButton, deleteEbookRecordButton;
     @FXML private Button viewStudentButton, pairStudentButton;
     // Bottom toolbar stuff
     @FXML private ToolBar buttonsToolbar;
     @FXML private Button newRecordButton;
-    @FXML private Button generateReportButton; // Todo: this
+    @FXML private Button generateReportButton;
 
     private Student selectedStudent;
     private Ebook selectedEbook;
@@ -79,7 +78,7 @@ public final class MainPageController {
     private ChangeWrapperHolder studentWrapperHolder;
     private ChangeWrapperHolder ebookWrapperHolder;
 
-    private final static File HOME_DIRECTORY = Main.HOME_DIRECTORY;
+    // File directories for error logs & reports & opening file pickers
     private final static File EBOOK_DIRECTORY = Main.EBOOK_DIRECTORY;
     private final static File REPORTS_DIRECTORY = Main.REPORTS_DIRECTORY;
 

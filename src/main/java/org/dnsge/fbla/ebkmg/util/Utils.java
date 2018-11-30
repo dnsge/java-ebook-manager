@@ -52,6 +52,15 @@ public final class Utils {
         return openFilePickerDialog(dialogTitle, new File(initialDirPath), ownerWindow);
     }
 
+    /**
+     * Prompts the user to save a file
+     *
+     * @param dialogTitle Title of the {@code FilePicker}
+     * @param initialDirPath {@code File} object to initially open the picker to
+     * @param ownerWindow {@code Window} object that his {@code FilePicker} belongs to
+     * @param extensionFilter {@link javafx.stage.FileChooser.ExtensionFilter} object to filter by
+     * @return Selected {@code File} to save to
+     */
     public static File openSavePickerDialog(String dialogTitle, File initialDirPath, Window ownerWindow, FileChooser.ExtensionFilter extensionFilter) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle(dialogTitle);
@@ -62,6 +71,15 @@ public final class Utils {
         return fileChooser.showSaveDialog(ownerWindow);
     }
 
+    /**
+     * Prompts the user to save a file
+     *
+     * @param dialogTitle Title of the {@code FilePicker}
+     * @param initialDirPath Path represented as a String to initially open the picker to
+     * @param ownerWindow {@code Window} object that his {@code FilePicker} belongs to
+     * @param extensionFilter {@link javafx.stage.FileChooser.ExtensionFilter} object to filter by
+     * @return Selected {@code File} to save to
+     */
     public static File openSavePickerDialog(String dialogTitle, String initialDirPath, Window ownerWindow, FileChooser.ExtensionFilter extensionFilter) {
         return openSavePickerDialog(dialogTitle, new File(initialDirPath), ownerWindow, extensionFilter);
     }

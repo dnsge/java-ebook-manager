@@ -43,6 +43,11 @@ public final class AlertCreator {
         return alert.getResult() == ButtonType.YES;
     }
 
+    /**
+     * Informs the user about some information
+     *
+     * @param prompt Information to tell the user
+     */
     public static void infoUser(String prompt) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION, prompt);
         alert.setTitle("Information");

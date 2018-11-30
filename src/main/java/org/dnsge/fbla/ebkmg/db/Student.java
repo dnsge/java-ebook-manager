@@ -13,7 +13,7 @@ import java.util.Objects;
  * Represents a student in a SQLite database
  *
  * @author Daniel Sage
- * @version 0.4
+ * @version 0.5
  */
 @DatabaseTable(tableName = "students")
 public final class Student {
@@ -48,13 +48,27 @@ public final class Student {
         this.ebookCode = null;
     }
 
-    public static Student whoOwns(String code) throws SQLException {
+    /**
+     * Gets the Student that owns an Ebook with a certain code
+     *
+     * @param code Ebook code to find
+     * @return Student with that Ebook, or null if there isn't one
+     * @throws SQLException if something goes wrong
+     */
+    static Student whoOwns(String code) throws SQLException {
         Dao<Student, String> dao = SQLiteConnector.getInstance().getStudentDao();
         List<Student> allCodes = dao.queryBuilder().where().eq("ebookCode", code).query();
         return allCodes.size() > 0 ? allCodes.get(0) : null;
     }
 
-    public static Student getFromStudentId(String studentId) throws SQLException {
+    /**
+     * Gets the Student with a certain studentId
+     *
+     * @param studentId studentId to find
+     * @return Student with that studentId, or null if there isn't one
+     * @throws SQLException if something goes wrong
+     */
+    private static Student getFromStudentId(String studentId) throws SQLException {
         SQLiteConnector connector = SQLiteConnector.getInstance();
         Dao<Student, String> dao = connector.getStudentDao();
 
@@ -69,6 +83,12 @@ public final class Student {
         }
     }
 
+    /**
+     * Checks whether a Student with a certain studentID exists
+     *
+     * @param studentId studentId to check for
+     * @return Whether a Student exists with a certain studentID
+     */
     public static boolean studentWithIdExists(String studentId) {
         try {
             return getFromStudentId(studentId) != null;
@@ -78,6 +98,12 @@ public final class Student {
         }
     }
 
+    /**
+     * Checks whether a Student with a certain studentID exists, excluding a certain student
+     *
+     * @param studentId studentId to check for
+     * @return Whether a Student exists with a certain studentID excluding a certain student
+     */
     public static boolean otherStudentWithIdExists(String studentId, Student me) {
         try {
             Student got = getFromStudentId(studentId);
@@ -93,7 +119,7 @@ public final class Student {
      *
      * @return Database ID Key
      */
-    public int getId() {
+    private int getId() {
         return id;
     }
 
@@ -158,7 +184,7 @@ public final class Student {
         return getOwnedEbook() != null;
     }
 
-    public String getEbookCode() {
+    private String getEbookCode() {
         return ebookCode;
     }
 
@@ -181,6 +207,11 @@ public final class Student {
         ownedEbook = null;
     }
 
+    /**
+     * Gets this Student's Ebook
+     *
+     * @return This Student's Ebook, null if there isn't one
+     */
     public Ebook getOwnedEbook() {
         if (ownedEbook != null) {
             return ownedEbook;

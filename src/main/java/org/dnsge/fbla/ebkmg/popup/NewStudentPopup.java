@@ -21,7 +21,6 @@ import javafx.stage.Stage;
 import org.dnsge.fbla.ebkmg.db.Student;
 import org.dnsge.fbla.ebkmg.util.Pair;
 
-
 /**
  * Class that allows for the creation of popups for new Students
  *
@@ -52,12 +51,10 @@ public class NewStudentPopup {
         mainGrid.setVgap(7);
         mainGrid.setPadding(new Insets(10));
 
-
         Text header = new Text("New Student");
         header.setFont(new Font(20));
         GridPane.setHalignment(header, HPos.CENTER);
         GridPane.setValignment(header, VPos.CENTER);
-
 
         Label firstNameLabel = new Label("First Name");
         Label lastNameLabel = new Label("Last Name");
@@ -115,12 +112,15 @@ public class NewStudentPopup {
             }
         });
 
-        cancelButton.setOnAction(e -> {
-            myStage.close();
-        });
+        cancelButton.setOnAction(e -> myStage.close());
 
     }
 
+    /**
+     * Checks if everything is filled out correctly for submission
+     *
+     * @return whether the popup can be submitted
+     */
     private boolean filledOutProperly() {
         return !firstNameField.getText().trim().isEmpty() &&
                 !lastNameField.getText().trim().isEmpty() &&

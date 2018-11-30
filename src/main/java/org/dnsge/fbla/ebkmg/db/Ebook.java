@@ -11,6 +11,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * Represents an ebook in a SQLite database
+ *
+ * @author Daniel Sage
+ * @version 0.5
+ */
 @DatabaseTable(tableName = "ebooks")
 public final class Ebook {
 
@@ -27,7 +33,15 @@ public final class Ebook {
         this.assignmentDate = assignmentDate;
     }
 
-    public static Ebook getOrCreate(String name, String code) throws SQLException {
+    /**
+     * Gets or creates an {@code Ebook} object that has a name & code
+     *
+     * @param name Name to use
+     * @param code Code to use
+     * @return Found or new {@code Ebook} object
+     * @throws SQLException if something goes wrong
+     */
+    static Ebook getOrCreate(String name, String code) throws SQLException {
         SQLiteConnector connector = SQLiteConnector.getInstance();
         Dao<Ebook, String> dao = connector.getEbookDao();
 
@@ -46,7 +60,14 @@ public final class Ebook {
         }
     }
 
-    public static Ebook get(String code) throws SQLException {
+    /**
+     * Gets the corresponding {@code Ebook} from a redemption code
+     *
+     * @param code Redemption code to select
+     * @return Found {@code Ebook} object, or null if not found
+     * @throws SQLException if something goes wrong
+     */
+    static Ebook get(String code) throws SQLException {
         SQLiteConnector connector = SQLiteConnector.getInstance();
         Dao<Ebook, String> dao = connector.getEbookDao();
 
@@ -61,6 +82,12 @@ public final class Ebook {
         }
     }
 
+    /**
+     * Checks for an already existing redemption code
+     *
+     * @param code Redemption code to check against
+     * @return Whether that code already exists in the database
+     */
     public static boolean exists(String code) {
         try {
             return get(code) != null;
@@ -70,6 +97,13 @@ public final class Ebook {
         }
     }
 
+    /**
+     * Checks for an already existing redemption code besides a certain ebook
+     *
+     * @param code Redemption code to check against
+     * @param me Ebook to ignore
+     * @return Whether that code already exists and isn't the specified Ebook
+     */
     public static boolean otherExists(String code, Ebook me) {
         try {
             Ebook got = get(code);
@@ -88,10 +122,15 @@ public final class Ebook {
         this.code = code;
     }
 
-    public Date getAssignmentDate() {
+    private Date getAssignmentDate() {
         return assignmentDate;
     }
 
+    /**
+     * Formats the redemption date to a string
+     *
+     * @return Formatted redemption date in "MM/dd/yy hh:mm aa" form
+     */
     public String getAssignmentDateString() {
         try {
             return new SimpleDateFormat("MM/dd/yy hh:mm aa").format(getAssignmentDate());
@@ -100,6 +139,11 @@ public final class Ebook {
         }
     }
 
+    /**
+     * Gets the owner of this Ebook
+     *
+     * @return The owner of this Ebook, or null if there isn't one
+     */
     public Student getOwner() {
         try {
             return Student.whoOwns(getCode());
@@ -129,12 +173,24 @@ public final class Ebook {
                 Objects.equals(assignmentDate, ebook.assignmentDate);
     }
 
+    /**
+     * Loads values from a Memento into this Ebook
+     *
+     * @param memento Memento to load from
+     * @see Memento
+     */
     public void loadFromMemento(Memento memento) {
         setName(memento.getEbookName());
         setCode(memento.getEbookCode());
         assignmentDate = memento.getEbookDate();
     }
 
+    /**
+     * Saves values from this Ebook into a Memento
+     *
+     * @return Memento object with this Ebook's values
+     * @see Memento
+     */
     public Memento saveToMemento() {
         return new Memento(this);
     }
@@ -144,6 +200,9 @@ public final class Ebook {
         return Objects.hash(code, name, assignmentDate);
     }
 
+    /**
+     * @return Whether this Ebook has a valid name and code
+     */
     public boolean filledOutProperly() {
         return !name.trim().isEmpty() &&
                 !code.trim().isEmpty();
@@ -184,13 +243,6 @@ public final class Ebook {
             Ebook t = new Ebook();
             t.loadFromMemento(this);
             return t;
-        }
-
-        /**
-         * @return Original student used to make the memento
-         */
-        Ebook getOriginalEbook() {
-            return originalEbook;
         }
 
         String getEbookName() {

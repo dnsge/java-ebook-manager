@@ -11,6 +11,7 @@
     <artifactId>ebook-manager</artifactId>
     <packaging>jar</packaging>
     <version>1.0.0-SNAPSHOT</version>
+
     <build>
         <plugins>
             <plugin>
@@ -73,25 +74,13 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>libs/</classpathPrefix>
-                            <classpathPrefix>.</classpathPrefix>
                             <mainClass>org.dnsge.fbla.ebkmg.LaunchMain</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
             </plugin>
 
-            <!--<plugin>-->
-                <!--<groupId>com.zenjava</groupId>-->
-                <!--<artifactId>javafx-maven-plugin</artifactId>-->
-                <!--<version>8.8.3</version>-->
-                <!--<configuration>-->
-                    <!--<mainClass>org.dnsge.fbla.ebkmg.Main</mainClass>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
-
         </plugins>
-
-
 
         <resources>
             <resource>

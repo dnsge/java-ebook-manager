@@ -649,6 +649,7 @@ public final class MainPageController {
         } else {
             studentWrapperHolder.clearAll();
             studentWrapperHolder.clearAllStyle();
+            studentTableView.getSelectionModel().clearSelection();
         }
 
         if (selectedEbook != null) {
@@ -656,10 +657,9 @@ public final class MainPageController {
         } else {
             ebookWrapperHolder.clearAll();
             ebookWrapperHolder.clearAllStyle();
+            ebookTableView.getSelectionModel().clearSelection();
         }
 
-        studentTableView.getSelectionModel().clearSelection();
-        ebookTableView.getSelectionModel().clearSelection();
     }
 
 

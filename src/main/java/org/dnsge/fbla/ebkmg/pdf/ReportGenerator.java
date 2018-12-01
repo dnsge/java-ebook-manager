@@ -12,6 +12,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Class to generate reports about Students
@@ -47,23 +48,37 @@ public class ReportGenerator {
 
         drawTitleHeader(contentStream);
 
-        int heightAt = 651;
-        int index = printManyStudents(contentStream, students, 0, heightAt);
-        contentStream.close();
+        ArrayList<PDPage> pages = null;
 
-        ArrayList<PDPage> pages = new ArrayList<>();
-        while (index < students.size()) {
-            heightAt = HEIGHT - VERT_MARGIN - 12;
-            PDPage newPage = new PDPage();
-            PDPageContentStream newStream = new PDPageContentStream(doc, newPage);
+        students = filterList(students, Student::hasEbook);
 
-            index = printManyStudents(newStream, students, index, heightAt);
-            pages.add(newPage);
-            newStream.close();
+        if (students.size() > 0) {
+            int heightAt = 651;
+            int index = printManyStudents(contentStream, students, 0, heightAt);
+
+            pages = new ArrayList<>();
+            while (index < students.size()) {
+                heightAt = HEIGHT - VERT_MARGIN - 12;
+                PDPage newPage = new PDPage();
+                PDPageContentStream newStream = new PDPageContentStream(doc, newPage);
+
+                index = printManyStudents(newStream, students, index, heightAt);
+                pages.add(newPage);
+                newStream.close();
+            }
+        } else {
+            contentStream.beginText();
+            contentStream.newLineAtOffset(HORZ_MARGIN, 665);
+            contentStream.showText("There are no students that are paired with an E-Book.");
+            contentStream.endText();
         }
 
+        contentStream.close();
         doc.addPage(titlePage);
-        pages.forEach(doc::addPage);
+
+        if (pages != null) {
+            pages.forEach(doc::addPage);
+        }
 
         doc.save(saveFile);
         doc.close();
@@ -151,5 +166,24 @@ public class ReportGenerator {
             stream.showText(renderString);
             stream.endText();
         }
+    }
+
+    /**
+     * Filters a List based off of a Predicate
+     *
+     * @param inputList Input list to filter
+     * @param predicate Predicate to test with
+     * @param <T> Type of the items of the list
+     * @return Filtered list
+     */
+    private static <T> List<T> filterList(List<T> inputList, Predicate<T> predicate) {
+        List<T> r = new ArrayList<>();
+        for (T item : inputList) {
+            if (predicate.test(item)) {
+                r.add(item);
+            }
+        }
+
+        return r;
     }
 }

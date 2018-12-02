@@ -3,6 +3,7 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.Cursor?>
 <?import javafx.scene.layout.*?>
 <?import java.lang.String?>
 <AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="400.0" minWidth="700.0" prefHeight="400.0" prefWidth="750.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.dnsge.fbla.ebkmg.MainPageController">
@@ -15,6 +16,8 @@
             <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem fx:id="connectToDatabase" mnemonicParsing="false" text="Connect to Database" />
             <MenuItem fx:id="closeConnection" disable="true" mnemonicParsing="false" text="Close Connection" />
+                  <SeparatorMenuItem mnemonicParsing="false" />
+                  <MenuItem fx:id="exportToCsv" disable="true" mnemonicParsing="false" text="Export to .csv" />
           </items>
         </Menu>
         <Menu mnemonicParsing="false" text="Edit">
@@ -30,7 +33,13 @@
         </Menu>
       </menus>
     </MenuBar>
-    <TabPane fx:id="mainTabPane" layoutX="0.0" layoutY="24.0" prefHeight="345.0" prefWidth="700.0" side="TOP" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="40.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="24.0">
+    <ToolBar fx:id="buttonsToolbar" disable="false" prefHeight="31.0" prefWidth="700.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="24.0">
+      <items>
+        <Button fx:id="newRecordButton" mnemonicParsing="false" prefWidth="200.0" text="Add Student" />
+        <Button fx:id="generateReportButton" mnemonicParsing="false" prefWidth="200.0" text="Generate Redemption Report" />
+      </items>
+    </ToolBar>
+    <TabPane fx:id="mainTabPane" layoutX="0.0" layoutY="24.0" prefHeight="345.0" prefWidth="700.0" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="60.0">
       <tabs>
         <Tab fx:id="studentTab" text="Students">
           <content>
@@ -55,13 +64,13 @@
                         <TextField fx:id="lastNameField" disable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
                           <children>
-                            <Button fx:id="cancelUpdateStudentButton" cancelButton="true" contentDisplay="CENTER" disable="false" mnemonicParsing="false" text="Cancel" />
-                            <Button fx:id="updateStudentDataButton" cancelButton="false" defaultButton="true" disable="false" mnemonicParsing="false" text="Update Information" />
+                            <Button fx:id="cancelUpdateStudentButton" cancelButton="true" contentDisplay="CENTER" disable="false" mnemonicParsing="false" prefWidth="125.0" text="Cancel" />
+                            <Button fx:id="updateStudentDataButton" cancelButton="false" defaultButton="true" disable="false" mnemonicParsing="false" prefWidth="125.0" text="Update Information" />
                           </children>
                         </HBox>
                         <Label text="Student ID" GridPane.columnIndex="0" GridPane.rowIndex="3" />
                         <TextField fx:id="studentIdField" disable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Button fx:id="deleteStudentRecordButton" disable="false" mnemonicParsing="false" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
+                        <Button fx:id="deleteStudentRecordButton" disable="false" mnemonicParsing="false" prefWidth="125.0" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
                         <Label text="Grade" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                         <ChoiceBox fx:id="studentGradeDropdown" disable="false" prefWidth="254.0" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
                           <items>
@@ -75,12 +84,12 @@
                         <Label text="Paired E-Book" GridPane.columnIndex="0" GridPane.rowIndex="4" />
                         <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.valignment="CENTER">
                           <children>
-                            <CheckBox fx:id="hasEbookCheckbox" disable="true" mnemonicParsing="false" prefWidth="68.0" text="Paired" HBox.hgrow="ALWAYS">
+                            <CheckBox fx:id="hasEbookCheckbox" disable="true" mnemonicParsing="false" prefWidth="65.0" text="Paired" textOverrun="CLIP" HBox.hgrow="ALWAYS">
                                              <padding>
                                                 <Insets right="5.0" />
                                              </padding></CheckBox>
                             <Button fx:id="viewEbookButton" mnemonicParsing="false" prefWidth="101.0" text="View E-Book" HBox.hgrow="ALWAYS" />
-                            <Button fx:id="unpairEbookButton" mnemonicParsing="false" prefHeight="27.0" prefWidth="64.0" text="Unpair" HBox.hgrow="ALWAYS">
+                            <Button fx:id="unpairEbookButton" mnemonicParsing="false" prefWidth="70.0" text="Unpair" HBox.hgrow="ALWAYS">
                               <HBox.margin>
                                 <Insets />
                               </HBox.margin>
@@ -132,28 +141,31 @@
                                     <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                                  </columnResizePolicy>
                     </TableView>
-                    <GridPane hgap="5.0" maxHeight="-Infinity" prefHeight="290.0" prefWidth="337.0" vgap="10.0" HBox.hgrow="ALWAYS">
+                    <GridPane hgap="5.0" maxHeight="-Infinity" prefHeight="290.0" prefWidth="371.0" vgap="10.0" HBox.hgrow="ALWAYS">
                       <children>
                         <Label text="Name" GridPane.columnIndex="0" GridPane.rowIndex="0" />
                         <Label text="Redemption Date" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                         <Label text="Redemption Code" GridPane.columnIndex="0" GridPane.rowIndex="1" />
                         <TextField id="redemptionDateField" fx:id="ebookNameField" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
                         <TextField fx:id="ebookCodeField" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                        <TextField fx:id="redemptionDateField" editable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <TextField fx:id="redemptionDateField" editable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                                       <cursor>
+                                          <Cursor fx:constant="NONE" />
+                                       </cursor></TextField>
                         <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
                           <children>
-                            <Button fx:id="cancelUpdateEbookButton" cancelButton="true" contentDisplay="RIGHT" mnemonicParsing="false" text="Cancel" />
-                            <Button fx:id="updateEbookDataButton" alignment="CENTER_RIGHT" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false" text="Update Information" />
+                            <Button fx:id="cancelUpdateEbookButton" cancelButton="true" contentDisplay="RIGHT" mnemonicParsing="false" prefWidth="110.0" text="Cancel" textAlignment="CENTER" />
+                            <Button fx:id="updateEbookDataButton" alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false" prefWidth="125.0" text="Update Information" textAlignment="CENTER" />
                           </children>
                         </HBox>
                         <Label prefWidth="94.0" text="Paired Student" GridPane.columnIndex="0" GridPane.rowIndex="3" />
                         <HBox id="HBox" alignment="CENTER" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                           <children>
                             <Button fx:id="viewStudentButton" contentDisplay="CENTER" mnemonicParsing="false" prefWidth="180.0" text="View Student" HBox.hgrow="NEVER" />
-                            <Button fx:id="pairStudentButton" ellipsisString="" mnemonicParsing="false" prefWidth="45.0" text="Pair" />
+                            <Button fx:id="pairStudentButton" ellipsisString="" mnemonicParsing="false" prefWidth="55.0" text="Pair" />
                           </children>
                         </HBox>
-                                    <Button fx:id="deleteEbookRecordButton" mnemonicParsing="false" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                                    <Button fx:id="deleteEbookRecordButton" mnemonicParsing="false" prefWidth="124.0" text="Delete E-Book" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
                       </children>
                       <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" maxWidth="166.0" minWidth="10.0" prefWidth="104.0" />
@@ -187,11 +199,5 @@
         </Tab>
       </tabs>
     </TabPane>
-    <ToolBar fx:id="buttonsToolbar" disable="false" prefHeight="31.0" prefWidth="700.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
-      <items>
-        <Button fx:id="newRecordButton" mnemonicParsing="false" text="New Record" />
-        <Button fx:id="generateReportButton" mnemonicParsing="false" text="Generate Report" />
-      </items>
-    </ToolBar>
   </children>
 </AnchorPane>

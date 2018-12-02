@@ -3,6 +3,7 @@ package org.dnsge.fbla.ebkmg.db;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.dnsge.fbla.ebkmg.csv.CsvBeanWritable;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -16,7 +17,7 @@ import java.util.Objects;
  * @version 0.5
  */
 @DatabaseTable(tableName = "students")
-public final class Student {
+public final class Student implements CsvBeanWritable {
 
     @DatabaseField(generatedId = true, allowGeneratedIdInsert = true) private int id;
     @DatabaseField private String firstName;
@@ -290,6 +291,16 @@ public final class Student {
         return !firstName.trim().isEmpty() &&
                 !lastName.trim().isEmpty() &&
                 !studentId.trim().isEmpty();
+    }
+
+    @Override
+    public String[] asCsvLine() {
+        return new String[]{firstName, lastName, grade, studentId, hasEbook().toString(), hasEbook() ? Objects.requireNonNull(getOwnedEbook()).getCode() : ""};
+    }
+
+    @Override
+    public String[] csvHeaders() {
+        return new String[]{"firstName", "lastName", "grade", "studentId", "hasEbook", "ebookCode"};
     }
 
     /**

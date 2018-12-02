@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import org.dnsge.fbla.ebkmg.db.SQLiteConnector;
+import org.dnsge.fbla.ebkmg.popup.AlertCreator;
 import org.dnsge.fbla.ebkmg.util.ErrorLog;
 
 import java.io.File;
@@ -26,10 +27,12 @@ public class Main extends Application {
     public final static String VERSION = "1.0.0-SNAPSHOT";
 
     final static File HOME_DIRECTORY = new File(System.getProperty("user.home"));
-    final static File EBOOK_DIRECTORY = new File(HOME_DIRECTORY, "EbookManagerData");
+    public final static File EBOOK_DIRECTORY = new File(HOME_DIRECTORY, "EbookManagerData");
     final static File REPORTS_DIRECTORY = new File(EBOOK_DIRECTORY, "reports");
     public final static File LOGS_DIRECTORY = new File(EBOOK_DIRECTORY, "logs");
+
     public final static SimpleDateFormat ERROR_LOG_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd kk.mm.ss");
+    public final static SimpleDateFormat CSV_FILE_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd kk.mm.ss");
 
     public static void main(String[] args) {
         launch(args);
@@ -49,15 +52,24 @@ public class Main extends Application {
             System.out.println("Unable to create " + LOGS_DIRECTORY.getAbsolutePath());
         }
 
-        Parent root = FXMLLoader.load(getClass().getResource("/mainpage.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/mainpage.fxml"));
+        Parent root = loader.load();
         primaryStage.setTitle("Main Page");
         primaryStage.setScene(new Scene(root));
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(700);
         primaryStage.setMinHeight(400);
+        MainPageController controller = loader.<MainPageController>getController();
+        controller.setWindow(primaryStage);
 
         // Intercept all close requests
+        Platform.setImplicitExit(false);
         primaryStage.setOnCloseRequest(event -> {
+            if (controller.unsavedChanges() && !AlertCreator.askYesOrNo("You have unsaved changes, are you sure you want to exit?")) {
+                event.consume();
+                return;
+            }
+
             // If we're still connected to the database, close it before exiting
             if (SQLiteConnector.getInstance().isConnected()) {
                 try {

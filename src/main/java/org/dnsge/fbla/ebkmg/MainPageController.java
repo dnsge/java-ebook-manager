@@ -10,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
+import org.dnsge.fbla.ebkmg.csv.CSVExporter;
 import org.dnsge.fbla.ebkmg.db.Ebook;
 import org.dnsge.fbla.ebkmg.db.SQLiteConnector;
 import org.dnsge.fbla.ebkmg.db.Student;
@@ -34,12 +35,14 @@ import java.util.concurrent.Callable;
  * Controller for the main JavaFX view
  *
  * @author Daniel Sage
- * @version 0.5
+ * @version 0.6
  */
 public final class MainPageController {
     // Menu bar stuff
     @FXML private MenuBar menuBar;
-    @FXML private MenuItem newDatabase, connectToDatabase, closeConnection, deleteMenuItem, aboutMenuItem, licenseMenuItem;
+    @FXML private MenuItem newDatabase, connectToDatabase, closeConnection, exportToCsv;
+    @FXML private MenuItem deleteMenuItem;
+    @FXML private MenuItem aboutMenuItem, licenseMenuItem;
 
     // Tab stuff
     @FXML private TabPane mainTabPane;
@@ -429,7 +432,6 @@ public final class MainPageController {
                 // Generate list and set the items
                 studentTableView.setItems(FXCollections.observableArrayList(allStudents));
                 ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
-                closeConnection.setDisable(false);
 
             } catch (IOException | SQLException e) {
                 e.printStackTrace();
@@ -476,7 +478,6 @@ public final class MainPageController {
                 // Generate list and set the items
                 studentTableView.setItems(FXCollections.observableArrayList(allStudents));
                 ebookTableView.setItems(FXCollections.observableArrayList(allEbooks));
-                closeConnection.setDisable(false);
 
             } catch (SQLException | IOException e) {
                 try {
@@ -506,11 +507,29 @@ public final class MainPageController {
                 setDisableOnInteractionsStudent(true);
                 setDisableOnInteractionsEbook(true);
 
-                closeConnection.setDisable(true);
                 studentTableView.setItems(FXCollections.observableArrayList());
                 ebookTableView.setItems(FXCollections.observableArrayList());
             } catch (IOException e1) {
                 e1.printStackTrace();
+            }
+        });
+
+        exportToCsv.setOnAction(event -> {
+            try {
+                File csvDirectory = Utils.openDirectoryPicker("Select where to export the .csv files", Main.HOME_DIRECTORY, myWindow);
+                if (csvDirectory == null) {
+                    return;
+                }
+
+                File studentsCsv = new File(csvDirectory, String.format("students-%s.csv", Main.CSV_FILE_DATE_FORMAT.format(new Date())));
+                File ebooksCsv = new File(csvDirectory, String.format("ebooks-%s.csv", Main.CSV_FILE_DATE_FORMAT.format(new Date())));
+
+                CSVExporter.writeCsvFromBeans(connector.getStudentDao().queryForAll(), studentsCsv.toPath());
+                CSVExporter.writeCsvFromBeans(connector.getEbookDao().queryForAll(), ebooksCsv.toPath());
+                AlertCreator.infoUser(String.format("CSV Files created in %s", csvDirectory.getAbsolutePath()));
+            } catch (IOException | SQLException e) {
+                AlertCreator.errorUser("There was an error exporting the CSV files.");
+                e.printStackTrace();
             }
         });
 
@@ -556,7 +575,11 @@ public final class MainPageController {
     private void registerToolBarInteractions() {
         // Set listener for when database connection state is changed
         // If connected, enable bottom toolbar, else disable it
-        connector.getConnectedProperty().addListener((observable, oldValue, newValue) -> buttonsToolbar.setDisable(!newValue));
+        connector.getConnectedProperty().addListener((observable, oldValue, newValue) -> {
+            buttonsToolbar.setDisable(!newValue);
+            closeConnection.setDisable(!newValue);
+            exportToCsv.setDisable(!newValue);
+        });
 
         newRecordButton.setOnAction(event -> {
             if (mainTabPane.getSelectionModel().getSelectedIndex() == 0) { // Student tab
@@ -821,6 +844,10 @@ public final class MainPageController {
     private void saveTextFieldsToEbook(Ebook ebook) {
         ebook.setName(ebookName.asText());
         ebook.setCode(ebookCode.asText());
+    }
+
+    boolean unsavedChanges() {
+        return studentWrapperHolder.anyChanged() || ebookWrapperHolder.anyChanged();
     }
 
 }

@@ -3,6 +3,7 @@ package org.dnsge.fbla.ebkmg.db;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import org.dnsge.fbla.ebkmg.csv.CsvBeanWritable;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -18,7 +19,7 @@ import java.util.Objects;
  * @version 0.5
  */
 @DatabaseTable(tableName = "ebooks")
-public final class Ebook {
+public final class Ebook implements CsvBeanWritable {
 
     @DatabaseField(generatedId = true, allowGeneratedIdInsert = true) private int id;
     @DatabaseField(unique = true) private String code;
@@ -210,6 +211,16 @@ public final class Ebook {
 
     public void setAssignmentDate(Date assignmentDate) {
         this.assignmentDate = assignmentDate;
+    }
+
+    @Override
+    public String[] asCsvLine() {
+        return new String[]{code, name, getAssignmentDateString()};
+    }
+
+    @Override
+    public String[] csvHeaders() {
+        return new String[]{"ebookCode", "ebookName", "ebookAssignmentDate"};
     }
 
     /**

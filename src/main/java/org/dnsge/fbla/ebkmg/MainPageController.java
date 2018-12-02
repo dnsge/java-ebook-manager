@@ -9,6 +9,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import javafx.stage.Window;
 import org.dnsge.fbla.ebkmg.db.Ebook;
 import org.dnsge.fbla.ebkmg.db.SQLiteConnector;
 import org.dnsge.fbla.ebkmg.db.Student;
@@ -82,6 +83,8 @@ public final class MainPageController {
     private final static File EBOOK_DIRECTORY = Main.EBOOK_DIRECTORY;
     private final static File REPORTS_DIRECTORY = Main.REPORTS_DIRECTORY;
 
+    private Window myWindow;
+
 
     /**
      * Called by JavaFX once all FXML fields/nodes have been created/registered
@@ -104,15 +107,26 @@ public final class MainPageController {
             if (selectedStudent != null) {
                 loadInteractionFieldsFromStudent(selectedStudent);
             }
+            newRecordButton.setText("Add Student");
         });
 
         ebookTab.setOnSelectionChanged(e -> {
             if (selectedEbook != null) {
                 loadInteractionFieldsFromEbook(selectedEbook);
             }
+            newRecordButton.setText("New E-Book");
         });
 
+        mainTabPane.setTabMinWidth(150);
+    }
 
+    void setWindow(Window window) {
+        myWindow = window;
+
+        myWindow.widthProperty().addListener((obs, oldVal, newVal) -> {
+            studentTableView.setPrefWidth(newVal.doubleValue() - firstNameField.getParent().prefWidth(0) - 20);
+            ebookTableView.setPrefWidth(newVal.doubleValue() - ebookNameField.getParent().prefWidth(0) - 20);
+        });
     }
 
     /**
@@ -598,7 +612,8 @@ public final class MainPageController {
                 }
 
                 ReportGenerator.generateReport(saveFile, connector.getStudentDao().queryForAll());
-                AlertCreator.infoUser(String.format("Your report was successfully created in %s", saveFile.getAbsolutePath()));
+                AlertCreator.infoUser(String.format("Your report was successfully created at %s", saveFile.getAbsolutePath()));
+                Utils.openWebBrowser(saveFile.toURI());
             } catch (IOException | SQLException e) {
                 e.printStackTrace();
                 AlertCreator.errorUser("There was an issue creating your report.");

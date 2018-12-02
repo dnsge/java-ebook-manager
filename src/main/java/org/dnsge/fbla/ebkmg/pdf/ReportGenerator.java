@@ -125,14 +125,14 @@ public class ReportGenerator {
         stream.beginText();
         stream.setLeading(20);
         stream.newLineAtOffset(HORZ_MARGIN, 691);
-        stream.setFont(PDType1Font.HELVETICA, 14);
+        stream.setFont(PDType1Font.HELVETICA, 12);
 
         Date now = new Date();
 
         stream.showText("Report generated on ");
-        stream.setFont(PDType1Font.HELVETICA_BOLD, 14);
+        stream.setFont(PDType1Font.HELVETICA_BOLD, 12);
         stream.showText(String.format("%s at %s", FORMAT_DATE.format(now), FORMAT_TIME.format(now)));
-        stream.setFont(PDType1Font.HELVETICA, 14);
+        stream.setFont(PDType1Font.HELVETICA, 12);
         stream.newLine();
         stream.endText();
     }
@@ -152,10 +152,11 @@ public class ReportGenerator {
             stream.newLineAtOffset(HORZ_MARGIN, heightAt);
             stream.setFont(PDType1Font.COURIER, 12);
 
-            String renderString = String.format(" - ID '%s' (%s %s) assigned bookcode '%s'",
-                    stu.getStudentId(),
+            String renderString = String.format("%s %s (%s) assigned book '%s' (code %s)",
                     stu.getFirstName(),
                     stu.getLastName(),
+                    stu.getStudentId(),
+                    stu.getOwnedEbook().getName(),
                     stu.getOwnedEbook().getCode()
             );
 

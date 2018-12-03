@@ -64,13 +64,13 @@
                         <TextField fx:id="lastNameField" disable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                         <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
                           <children>
-                            <Button fx:id="cancelUpdateStudentButton" cancelButton="true" contentDisplay="CENTER" disable="false" mnemonicParsing="false" prefWidth="125.0" text="Cancel" />
-                            <Button fx:id="updateStudentDataButton" cancelButton="false" defaultButton="true" disable="false" mnemonicParsing="false" prefWidth="125.0" text="Update Information" />
+                            <Button fx:id="cancelUpdateStudentButton" cancelButton="true" contentDisplay="CENTER" disable="false" mnemonicParsing="false" prefWidth="100.0" text="Cancel" />
+                            <Button fx:id="updateStudentDataButton" cancelButton="false" defaultButton="true" disable="false" mnemonicParsing="false" prefWidth="150.0" text="Update Information" />
                           </children>
                         </HBox>
                         <Label text="Student ID" GridPane.columnIndex="0" GridPane.rowIndex="3" />
                         <TextField fx:id="studentIdField" disable="false" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <Button fx:id="deleteStudentRecordButton" disable="false" mnemonicParsing="false" prefWidth="125.0" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
+                        <Button fx:id="deleteStudentRecordButton" disable="false" mnemonicParsing="false" prefWidth="150.0" style="&#10;" text="Delete Record" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
                         <Label text="Grade" GridPane.columnIndex="0" GridPane.rowIndex="2" />
                         <ChoiceBox fx:id="studentGradeDropdown" disable="false" prefWidth="254.0" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="2" GridPane.valignment="CENTER" GridPane.vgrow="ALWAYS">
                           <items>
@@ -84,7 +84,7 @@
                         <Label text="Paired E-Book" GridPane.columnIndex="0" GridPane.rowIndex="4" />
                         <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.valignment="CENTER">
                           <children>
-                            <CheckBox fx:id="hasEbookCheckbox" disable="true" mnemonicParsing="false" prefWidth="65.0" text="Paired" textOverrun="CLIP" HBox.hgrow="ALWAYS">
+                            <CheckBox fx:id="hasEbookCheckbox" disable="true" mnemonicParsing="false" prefWidth="75.0" text="Paired" textOverrun="CLIP" HBox.hgrow="ALWAYS">
                                              <padding>
                                                 <Insets right="5.0" />
                                              </padding></CheckBox>
@@ -154,8 +154,8 @@
                                        </cursor></TextField>
                         <HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" spacing="5.0" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="4">
                           <children>
-                            <Button fx:id="cancelUpdateEbookButton" cancelButton="true" contentDisplay="RIGHT" mnemonicParsing="false" prefWidth="110.0" text="Cancel" textAlignment="CENTER" />
-                            <Button fx:id="updateEbookDataButton" alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false" prefWidth="125.0" text="Update Information" textAlignment="CENTER" />
+                            <Button fx:id="cancelUpdateEbookButton" cancelButton="true" contentDisplay="RIGHT" mnemonicParsing="false" prefWidth="85.0" text="Cancel" textAlignment="CENTER" />
+                            <Button fx:id="updateEbookDataButton" alignment="CENTER" contentDisplay="RIGHT" defaultButton="true" mnemonicParsing="false" prefWidth="150.0" text="Update Information" textAlignment="CENTER" />
                           </children>
                         </HBox>
                         <Label prefWidth="94.0" text="Paired Student" GridPane.columnIndex="0" GridPane.rowIndex="3" />
@@ -165,7 +165,7 @@
                             <Button fx:id="pairStudentButton" ellipsisString="" mnemonicParsing="false" prefWidth="55.0" text="Pair" />
                           </children>
                         </HBox>
-                                    <Button fx:id="deleteEbookRecordButton" mnemonicParsing="false" prefWidth="124.0" text="Delete E-Book" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                                    <Button fx:id="deleteEbookRecordButton" mnemonicParsing="false" prefWidth="150.0" text="Delete E-Book" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
                       </children>
                       <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" maxWidth="166.0" minWidth="10.0" prefWidth="104.0" />

@@ -72,6 +72,7 @@
                             <outputDirectory>${project.build.directory}/artifacts/${project.version}/lib</outputDirectory>
                             <resources>
                                 <resource>
+                                    <directory>src/main/resources</directory>
                                     <directory>resources</directory>
                                     <filtering>true</filtering>
                                 </resource>

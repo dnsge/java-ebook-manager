@@ -552,7 +552,7 @@ public final class MainPageController {
 
         userGuideMenuItem.setOnAction(e -> {
             try {
-                PagedPopup pagedPopup = new PagedPopup(); //new PagedPopup(new File(Main.class.getResource("/userGuideConfig.xml").getFile()));
+                PagedPopup pagedPopup = new PagedPopup(Main.class.getResourceAsStream("/userGuideConfig.xml"));
                 pagedPopup.showAndWait();
             } catch (ParserConfigurationException | IOException | SAXException e1) {
                 e1.printStackTrace();

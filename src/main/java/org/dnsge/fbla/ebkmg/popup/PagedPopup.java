@@ -18,14 +18,13 @@ import javafx.stage.Stage;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,43 +33,17 @@ import java.util.List;
  * based off of a XML configuration file
  *
  * @author Daniel Sage
- * @version 0.1
+ * @version 0.2
  */
 public class PagedPopup {
 
-    private static String workaround = "<?xml version=\"1.0\"?>\n" +
-            "<multiPagePopup>\n" +
-            "    <size>\n" +
-            "        <width>350</width>\n" +
-            "        <height>175</height>\n" +
-            "    </size>\n" +
-            "    <title>User Guide</title>\n" +
-            "    <nextButton>Next</nextButton>\n" +
-            "    <prevButton>Prev</prevButton>\n" +
-            "    <pages>\n" +
-            "        <page>To get started, create a new database file by selecting ‘New Database’ in the ‘File’ dropdown menu. Save the file in a directory of your choosing.</page>\n" +
-            "        <page>Under the ‘File’ menu, use ‘Connect to Database’ to connect to an already existing database file.</page>\n" +
-            "        <page>Use the ‘Close Connection’ option to disconnect from the database. This automatically done on closing the application or upon connecting to another database.</page>\n" +
-            "        <page>To create a new student entry or Ebook entry, select the appropriate tab and click ‘Add Student’ or ‘New Ebook’. Fill in the appropriate details in the popup.</page>\n" +
-            "        <page>To view details about a Student or an Ebook, navigate to the appropriate tab and click on the desired record in the table.</page>\n" +
-            "        <page>To modify information about a record, use the fields on the right side of the tab. Changed information is highlighted in a black border. Click the ‘Update Information’ button to save your changes.</page>\n" +
-            "        <page>To cancel your changes or deselect the record in the table, press the ‘Cancel’ button.</page>\n" +
-            "        <page>To delete a record from the database, press the ‘Delete Record’ button. Alternatively, under the ‘Edit’ menu, select ‘Delete record’.</page>\n" +
-            "        <page>Ebooks can be paired to students. When an ebook is selected in the ebook tab, press the ‘Pair’ button to pair the ebook to a student. Press ‘View Student’ to jump to the student in the Student tab.</page>\n" +
-            "        <page>To view the ebook paired with a specific student, under the student tab, select a student and then press ‘View Ebook’. This option is only available if the ‘Paired’ checkbox is enabled. Press ‘Unpair’ to unpair.</page>\n" +
-            "        <page>Press the ‘Generate Report’ button to create a .PDF file detailing who has what book currently paired to them.</page>\n" +
-            "        <page>Under the ‘File’ menu, select ‘Export to .csv’ to export both the students and ebooks to their respective .csv file in a directory. (Note: Creates two separate .csv files)</page>\n" +
-            "    </pages>\n" +
-            "</multiPagePopup>\n";
-
     private Stage myStage;
 
-    public PagedPopup() throws ParserConfigurationException, IOException, SAXException {
+    public PagedPopup(InputStream inStream) throws ParserConfigurationException, IOException, SAXException {
         // Load and parse the XML config file
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
-//        Document doc = builder.parse(xmlDoc);
-        Document doc = builder.parse(new InputSource(new StringReader(workaround)));
+        Document doc = builder.parse(inStream);
         PagedPopupConfig config = new PagedPopupConfig(doc);
 
         int width = config.width;

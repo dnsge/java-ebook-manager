@@ -22,7 +22,9 @@ import org.dnsge.fbla.ebkmg.popup.*;
 import org.dnsge.fbla.ebkmg.util.ErrorLog;
 import org.dnsge.fbla.ebkmg.util.Pair;
 import org.dnsge.fbla.ebkmg.util.Utils;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -42,7 +44,7 @@ public final class MainPageController {
     @FXML private MenuBar menuBar;
     @FXML private MenuItem newDatabase, connectToDatabase, closeConnection, exportToCsv;
     @FXML private MenuItem deleteMenuItem;
-    @FXML private MenuItem aboutMenuItem, licenseMenuItem;
+    @FXML private MenuItem userGuideMenuItem, aboutMenuItem, licenseMenuItem;
 
     // Tab stuff
     @FXML private TabPane mainTabPane;
@@ -546,6 +548,15 @@ public final class MainPageController {
                 }
             }
             AlertCreator.infoUser("There is nothing to delete.");
+        });
+
+        userGuideMenuItem.setOnAction(e -> {
+            try {
+                PagedPopup pagedPopup = new PagedPopup(new File(getClass().getResource("/userGuideConfig.xml").getFile()));
+                pagedPopup.showAndWait();
+            } catch (ParserConfigurationException | IOException | SAXException e1) {
+                e1.printStackTrace();
+            }
         });
 
         aboutMenuItem.setOnAction(e -> {

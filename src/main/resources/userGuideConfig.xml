@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<multiPagePopup>
+    <size>
+        <width>350</width>
+        <height>175</height>
+    </size>
+    <title>User Guide</title>
+    <nextButton>Next</nextButton>
+    <prevButton>Prev</prevButton>
+    <pages>
+        <page>To get started, create a new database file by selecting ‘New Database’ in the ‘File’ dropdown menu. Save the file in a directory of your choosing.</page>
+        <page>Under the ‘File’ menu, use ‘Connect to Database’ to connect to an already existing database file.</page>
+        <page>Use the ‘Close Connection’ option to disconnect from the database. This automatically done on close or upon connecting to another database.</page>
+        <page>To create a new student entry or Ebook entry, select the appropriate tab and click ‘New Student’ or ‘New E-Book’. Fill in the appropriate details in the popup.</page>
+        <page>To view details about a Student or an Ebook, navigate to the appropriate tab and click on the desired record in the table.</page>
+        <page>To modify information about a record, use the fields on the right side of the tab. Changed information is highlighted in a black border. Click the ‘Update Information’ button to save your changes.</page>
+        <page>To cancel your changes or deselect the record in the table, press the ‘Cancel’ button.</page>
+        <page>To delete a record from the database, press the ‘Delete Record’ button. Alternatively, under the ‘Edit’ menu, select ‘Delete record’.</page>
+        <page>Ebooks can be paired to students. When an ebook is selected in the ebook tab, press the ‘Pair’ button to pair the ebook to a student. Press ‘View Student’ to jump to the student in the Student tab.</page>
+        <page>To view the ebook paired with a specific student, under the student tab, select a student and then press ‘View Ebook’. This option is only available if the ‘Paired’ checkbox is enabled. Press ‘Unpair’ to unpair.</page>
+        <page>Press the ‘Generate Report’ button to create a .PDF file detailing who has what book currently paired to them.</page>
+        <page>Under the ‘File’ menu, select ‘Export to .csv’ to export both the students and ebooks to their respective .csv file in a directory. (Note: Creates two separate .csv files)</page>
+    </pages>
+</multiPagePopup>

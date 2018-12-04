@@ -82,14 +82,14 @@
                             </FXCollections>
                           </items>
                         </ChoiceBox>
-                        <Label text="Paired E-Book" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                        <Label text="Paired Ebook" GridPane.columnIndex="0" GridPane.rowIndex="4" />
                         <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.hgrow="ALWAYS" GridPane.rowIndex="4" GridPane.valignment="CENTER">
                           <children>
                             <CheckBox fx:id="hasEbookCheckbox" disable="true" mnemonicParsing="false" prefWidth="75.0" text="Paired" textOverrun="CLIP" HBox.hgrow="ALWAYS">
                                              <padding>
                                                 <Insets right="5.0" />
                                              </padding></CheckBox>
-                            <Button fx:id="viewEbookButton" mnemonicParsing="false" prefWidth="101.0" text="View E-Book" HBox.hgrow="ALWAYS" />
+                            <Button fx:id="viewEbookButton" mnemonicParsing="false" prefWidth="101.0" text="View Ebook" HBox.hgrow="ALWAYS" />
                             <Button fx:id="unpairEbookButton" mnemonicParsing="false" prefWidth="70.0" text="Unpair" HBox.hgrow="ALWAYS">
                               <HBox.margin>
                                 <Insets />
@@ -127,7 +127,7 @@
             </AnchorPane>
           </content>
         </Tab>
-        <Tab fx:id="ebookTab" text="E-Books">
+        <Tab fx:id="ebookTab" text="Ebooks">
           <content>
             <AnchorPane id="Content" minHeight="0.0" minWidth="0.0">
               <children>
@@ -166,7 +166,7 @@
                             <Button fx:id="pairStudentButton" ellipsisString="" mnemonicParsing="false" prefWidth="55.0" text="Pair" />
                           </children>
                         </HBox>
-                                    <Button fx:id="deleteEbookRecordButton" mnemonicParsing="false" prefWidth="150.0" text="Delete E-Book" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
+                                    <Button fx:id="deleteEbookRecordButton" mnemonicParsing="false" prefWidth="150.0" text="Delete Ebook" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
                       </children>
                       <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" maxWidth="166.0" minWidth="10.0" prefWidth="104.0" />

@@ -28,6 +28,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class that creates a Popup window with multiple pages of text
+ * based off of a XML configuration file
+ *
+ * @author Daniel Sage
+ * @version 0.1
+ */
 public class PagedPopup {
 
     private Stage myStage;
@@ -118,6 +125,9 @@ public class PagedPopup {
     }
 
 
+    /**
+     * Inner class to parse the values inside the selected XML document
+     */
     private static class PagedPopupConfig {
 
         final int width;
@@ -160,10 +170,20 @@ public class PagedPopup {
 
     }
 
+    /**
+     * Gets the whole number quotient from a division
+     *
+     * @param dividend Number to divide
+     * @param divisor Number to divide by
+     * @return whole part of dividend / divison
+     */
     private int wholeQuotient(int dividend, int divisor) {
         return dividend - (dividend % divisor);
     }
 
+    /**
+     * Shows the popup
+     */
     public void showAndWait() {
         myStage.showAndWait();
     }

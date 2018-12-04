@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>E-Book Manager</name>
+    <name>Ebook Manager</name>
     <url>https://github.com/dnsge/java-ebook-manager</url>
 
     <groupId>org.dnsge.fbla.ebkmg</groupId>

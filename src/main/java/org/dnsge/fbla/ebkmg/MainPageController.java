@@ -119,7 +119,7 @@ public final class MainPageController {
             if (selectedEbook != null) {
                 loadInteractionFieldsFromEbook(selectedEbook);
             }
-            newRecordButton.setText("New E-Book");
+            newRecordButton.setText("New Ebook");
         });
 
         mainTabPane.setTabMinWidth(150);
@@ -315,7 +315,7 @@ public final class MainPageController {
                         ErrorLog.newErrorLogWithPopup(e);
                     }
                 } else {
-                    AlertCreator.errorUser("An E-Book with that code already exists!");
+                    AlertCreator.errorUser("An Ebook with that code already exists!");
                 }
             }
             ebookTableView.refresh();
@@ -353,7 +353,7 @@ public final class MainPageController {
                     try {
                         connector.getEbookDao().update(ebook);
                     } catch (SQLException e) {
-                        AlertCreator.errorUser("There was a problem removing the date of the previously paired E-book.");
+                        AlertCreator.errorUser("There was a problem removing the date of the previously paired Ebook.");
                         e.printStackTrace();
                     }
                 }
@@ -365,7 +365,7 @@ public final class MainPageController {
                     connector.getEbookDao().update(selectedEbook);
                     loadInteractionFieldsFromEbook(selectedEbook);
                 } catch (SQLException e) {
-                    AlertCreator.errorUser("There was a problem pairing that E-Book and Student");
+                    AlertCreator.errorUser("There was a problem pairing that Ebook and Student");
                     e.printStackTrace();
                 }
             }
@@ -560,10 +560,11 @@ public final class MainPageController {
         });
 
         aboutMenuItem.setOnAction(e -> {
-            BasicPopup aboutPopup = new BasicPopup(400, 175, "About",
+            BasicPopup aboutPopup = new BasicPopup(500, 175, "About",
                          "This is a Java program designed by Daniel Sage (github.com/dnsge) " +
                          "in 2018 for the FBLA Coding & Programming event.\n\n" +
-                         "It uses a SQLite database and was written using the JavaFX library.");
+                         "It uses a SQLite database and was written using the JavaFX library.\n\n" +
+                         "App icon: https://www.iconfinder.com/icons/315152/book_bookmark_icon");
 
             aboutPopup.showAndWait();
         });

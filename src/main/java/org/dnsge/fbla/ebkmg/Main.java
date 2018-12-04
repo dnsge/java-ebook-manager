@@ -27,12 +27,12 @@ public class Main extends Application {
     public final static String VERSION = "1.0.0-SNAPSHOT";
 
     final static File HOME_DIRECTORY = new File(System.getProperty("user.home"));
-    public final static File EBOOK_DIRECTORY = new File(HOME_DIRECTORY, "EbookManagerData");
+    final static File EBOOK_DIRECTORY = new File(HOME_DIRECTORY, "EbookManagerData");
     final static File REPORTS_DIRECTORY = new File(EBOOK_DIRECTORY, "reports");
     public final static File LOGS_DIRECTORY = new File(EBOOK_DIRECTORY, "logs");
 
     public final static SimpleDateFormat ERROR_LOG_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd kk.mm.ss");
-    public final static SimpleDateFormat CSV_FILE_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd kk.mm.ss");
+    final static SimpleDateFormat CSV_FILE_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-dd kk.mm.ss");
 
     public static void main(String[] args) {
         launch(args);
@@ -42,6 +42,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         Thread.setDefaultUncaughtExceptionHandler(Main::showError);
 
+        // Setup working directories
         if (!EBOOK_DIRECTORY.exists() && !EBOOK_DIRECTORY.mkdirs()) {
             System.out.println("Unable to create " + EBOOK_DIRECTORY.getAbsolutePath());
         }
@@ -82,7 +83,6 @@ public class Main extends Application {
         });
 
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/bookicon.png")));
-
         primaryStage.show();
 
     }

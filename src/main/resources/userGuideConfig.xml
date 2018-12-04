@@ -10,8 +10,8 @@
     <pages>
         <page>To get started, create a new database file by selecting ‘New Database’ in the ‘File’ dropdown menu. Save the file in a directory of your choosing.</page>
         <page>Under the ‘File’ menu, use ‘Connect to Database’ to connect to an already existing database file.</page>
-        <page>Use the ‘Close Connection’ option to disconnect from the database. This automatically done on close or upon connecting to another database.</page>
-        <page>To create a new student entry or Ebook entry, select the appropriate tab and click ‘New Student’ or ‘New E-Book’. Fill in the appropriate details in the popup.</page>
+        <page>Use the ‘Close Connection’ option to disconnect from the database. This automatically done on closing the application or upon connecting to another database.</page>
+        <page>To create a new student entry or Ebook entry, select the appropriate tab and click ‘Add Student’ or ‘New Ebook’. Fill in the appropriate details in the popup.</page>
         <page>To view details about a Student or an Ebook, navigate to the appropriate tab and click on the desired record in the table.</page>
         <page>To modify information about a record, use the fields on the right side of the tab. Changed information is highlighted in a black border. Click the ‘Update Information’ button to save your changes.</page>
         <page>To cancel your changes or deselect the record in the table, press the ‘Cancel’ button.</page>

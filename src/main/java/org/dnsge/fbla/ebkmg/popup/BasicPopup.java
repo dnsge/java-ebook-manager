@@ -25,6 +25,7 @@ public class BasicPopup {
      * @param text Popup text
      */
     public BasicPopup(int width, int height, String title, String text) {
+        // Create containers
         AnchorPane root = new AnchorPane();
         root.setPrefSize(width, height);
         root.setPadding(new Insets(5));
@@ -32,17 +33,20 @@ public class BasicPopup {
         VBox all = new VBox(10);
         all.setPrefSize(width, height);
 
+        // Create labels
         Label titleLabel = new Label(title);
         titleLabel.setFont(new Font(16));
 
         Label mainTextLabel = new Label(text);
         mainTextLabel.setWrapText(true);
 
+        // Fill containers
         all.setPadding(new Insets(10));
         all.getChildren().addAll(titleLabel, mainTextLabel);
 
         root.getChildren().add(all);
 
+        // Set up scene & stage
         Scene myScene = new Scene(root);
         myStage = new Stage();
 
@@ -52,6 +56,9 @@ public class BasicPopup {
         myStage.setResizable(false);
     }
 
+    /**
+     * Shows the popup
+     */
     public void showAndWait() {
         myStage.showAndWait();
     }

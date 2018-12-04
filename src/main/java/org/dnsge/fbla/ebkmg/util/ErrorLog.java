@@ -97,9 +97,9 @@ public class ErrorLog {
     private static void writeErrorLogFile(File outputFile, Throwable exception, Date errorDate) throws FileNotFoundException {
         PrintStream ps = new PrintStream(outputFile);
         ps.println("┏━━━━━━━━━━━━━━━━━━━━━━━━━┓ ");
-        ps.println("┃ EBook Manager Error Log ┃ ");
+        ps.println("┃ Ebook Manager Error Log ┃ ");
         ps.println("┗━━━━━━━━━━━━━━━━━━━━━━━━━┛ ");
-        ps.println(String.format("E-Book manager version %s @ %s", Main.VERSION, Main.ERROR_LOG_DATE_FORMAT.format(errorDate)));
+        ps.println(String.format("Ebook manager version %s @ %s", Main.VERSION, Main.ERROR_LOG_DATE_FORMAT.format(errorDate)));
         ps.println("Detailed exception stack trace below: \n");
         exception.printStackTrace(ps);
         ps.close();

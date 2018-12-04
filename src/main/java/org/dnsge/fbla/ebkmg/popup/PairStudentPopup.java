@@ -114,7 +114,7 @@ public class PairStudentPopup {
         myStage = new Stage();
 
         myStage.setScene(myScene);
-        myStage.setTitle("Pair E-Book with Student");
+        myStage.setTitle("Pair Ebook with Student");
         myStage.initModality(Modality.APPLICATION_MODAL);
         myStage.setResizable(false);
     }

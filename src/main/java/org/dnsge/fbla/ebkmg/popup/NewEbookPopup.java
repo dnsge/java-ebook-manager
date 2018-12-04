@@ -34,7 +34,7 @@ public class NewEbookPopup {
     private boolean wantSave = false;
 
     public NewEbookPopup() {
-
+        // Create containers
         AnchorPane root = new AnchorPane();
         root.setPrefSize(300, 150);
         root.setPadding(new Insets(5));
@@ -48,28 +48,31 @@ public class NewEbookPopup {
         mainGrid.setVgap(7);
         mainGrid.setPadding(new Insets(10));
 
-        Text header = new Text("New E-Book");
+        // Create labels
+        Text header = new Text("New Ebook");
         header.setFont(new Font(20));
         GridPane.setHalignment(header, HPos.CENTER);
         GridPane.setValignment(header, VPos.CENTER);
         GridPane.setHgrow(header, Priority.ALWAYS);
 
-        Label nameLabel = new Label("E-Book Name");
+        Label nameLabel = new Label("Ebook Name");
         Label redemptionLabel = new Label("Redemption Code");
 
+        // Create buttons
         HBox buttonsBox = new HBox(5);
         buttonsBox.setPadding(new Insets(5));
         buttonsBox.setAlignment(Pos.CENTER_RIGHT);
         Button saveButton = new Button("Save");
         Button cancelButton = new Button("Cancel");
 
-
+        // Create text fields
         nameField = new TextField();
         redemptionField = new TextField();
 
         GridPane.setHgrow(nameField, Priority.ALWAYS);
         GridPane.setHgrow(redemptionField, Priority.ALWAYS);
 
+        // Fill containers
         buttonsBox.getChildren().addAll(saveButton, cancelButton);
 
         mainGrid.add(header, 0, 0);
@@ -81,6 +84,7 @@ public class NewEbookPopup {
 
         root.getChildren().add(mainGrid);
 
+        // Set up scene & stage & event listeners
         Scene myScene = new Scene(root);
         myStage = new Stage();
 
@@ -97,7 +101,7 @@ public class NewEbookPopup {
                     wantSave = true;
                     myStage.close();
                 } else {
-                    AlertCreator.errorUser("An E-Book with that code already exists!");
+                    AlertCreator.errorUser("An Ebook with that code already exists!");
                 }
             } else {
                 AlertCreator.errorUser("You need to give a value for each field");
@@ -110,6 +114,9 @@ public class NewEbookPopup {
 
     }
 
+    /**
+     * @return whether the fields are properly filled out and ready for submission
+     */
     private boolean filledOutProperly() {
         return !nameField.getText().trim().isEmpty() &&
                 !redemptionField.getText().trim().isEmpty();

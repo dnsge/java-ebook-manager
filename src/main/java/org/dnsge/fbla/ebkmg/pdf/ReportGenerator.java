@@ -69,7 +69,7 @@ public class ReportGenerator {
         } else {
             contentStream.beginText();
             contentStream.newLineAtOffset(HORZ_MARGIN, 665);
-            contentStream.showText("There are no students that are paired with an E-Book.");
+            contentStream.showText("There are no students that are paired with an Ebook.");
             contentStream.endText();
         }
 
@@ -117,7 +117,7 @@ public class ReportGenerator {
         stream.beginText();
         stream.newLineAtOffset(HORZ_MARGIN, 750 - 20);
         stream.setFont(PDType1Font.HELVETICA_BOLD, 30);
-        stream.showText("E-Book Redemption Report");
+        stream.showText("Ebook Redemption Report");
         stream.endText();
 
         stream.drawLine(HORZ_MARGIN - 5, 715, WIDTH - HORZ_MARGIN + 5, 715);

@@ -9,6 +9,12 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class for exporting {@link CsvBeanWritable} objects to a .csv file
+ *
+ * @author Daniel Sage
+ * @version 0.1
+ */
 public class CSVExporter {
 
     /**

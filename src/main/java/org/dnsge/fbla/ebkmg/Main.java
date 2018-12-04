@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 
 /**
- * Main class & program entry point
+ * Main class and program entry point
  *
  * @author Daniel Sage
  * @since 0.0
@@ -60,7 +60,7 @@ public class Main extends Application {
         primaryStage.setResizable(true);
         primaryStage.setMinWidth(700);
         primaryStage.setMinHeight(400);
-        MainPageController controller = loader.<MainPageController>getController();
+        MainPageController controller = loader.getController();
         controller.setWindow(primaryStage);
 
         // Intercept all close requests

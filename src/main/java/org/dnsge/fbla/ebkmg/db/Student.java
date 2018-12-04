@@ -103,6 +103,7 @@ public final class Student implements CsvBeanWritable {
      * Checks whether a Student with a certain studentID exists, excluding a certain student
      *
      * @param studentId studentId to check for
+     * @param me Student to ignore
      * @return Whether a Student exists with a certain studentID excluding a certain student
      */
     public static boolean otherStudentWithIdExists(String studentId, Student me) {

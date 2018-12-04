@@ -21,7 +21,7 @@ public class BasicPopup {
      *
      * @param width Popup width
      * @param height Popup height
-     * @param title Popup title & text-header
+     * @param title Popup title and text-header
      * @param text Popup text
      */
     public BasicPopup(int width, int height, String title, String text) {
